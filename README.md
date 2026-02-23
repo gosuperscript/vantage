@@ -288,6 +288,27 @@ public function boot(): void
 
 Want to keep the dashboard public but still record jobs? Either return `true` from the gate even for guests, or set `VANTAGE_AUTH_ENABLED=false`.
 
+### Exclude Jobs from Monitoring
+
+if you want to exclude some jobs from being tracked by Vantage, you can add them to the `exclude_jobs` config array:
+
+```php
+    'exclude_jobs' => [
+        App\Jobs\SomeNoisyJob::class,
+    ],
+```
+
+Or implement the 'ShouldNotBeTracked' class.
+
+```php
+use HoudaSlassi\Vantage\Contracts\ShouldNotBeTracked;
+
+class MyNoisyJob implements ShouldQueue, ShouldNotBeTracked
+{
+    public function handle(): void { ... }
+}
+```
+
 ## Testing
 
 ### Using the Model Factory
