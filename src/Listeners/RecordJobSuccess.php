@@ -12,12 +12,17 @@ use Illuminate\Queue\Events\JobProcessed;
 
 class RecordJobSuccess
 {
+    use ChecksJobExclusion;
     use ExtractsRetryOf;
 
     public function handle(JobProcessed $event): void
     {
         // Master switch: if package is disabled, don't track anything
         if (! config('vantage.enabled', true)) {
+            return;
+        }
+
+        if ($this->isExcluded($event->job->resolveName())) {
             return;
         }
 

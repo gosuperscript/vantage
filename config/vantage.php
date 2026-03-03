@@ -170,4 +170,15 @@ return [
     'logging' => [
         'enabled' => env('VANTAGE_LOGGING_ENABLED', true),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Excluded Jobs
+    |--------------------------------------------------------------------------
+    | Job classes listed here will not be recorded by Vantage.
+    | You can also implement ShouldNotBeTracked on any job class.
+    */
+    'exclude_jobs' => [
+        // App\Jobs\SomeNoisyJob::class,
+    ],
 ];

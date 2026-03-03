@@ -13,12 +13,17 @@ use Illuminate\Support\Str;
 
 class RecordJobStart
 {
+    use ChecksJobExclusion;
     use ExtractsRetryOf;
 
     public function handle(JobProcessing $event): void
     {
         // Master switch: if package is disabled, don't track anything
         if (! config('vantage.enabled', true)) {
+            return;
+        }
+
+        if ($this->isExcluded($event->job->resolveName())) {
             return;
         }
 
