@@ -2,14 +2,14 @@
 
 namespace Storvia\Vantage\Listeners;
 
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\JobPerformanceContext;
 use Storvia\Vantage\Support\PayloadExtractor;
 use Storvia\Vantage\Support\TagAggregator;
 use Storvia\Vantage\Support\TagExtractor;
 use Storvia\Vantage\Support\Traits\ExtractsRetryOf;
-use Illuminate\Queue\Events\JobProcessing;
-use Illuminate\Support\Str;
 
 class RecordJobStart
 {

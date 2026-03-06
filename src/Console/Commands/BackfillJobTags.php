@@ -2,10 +2,10 @@
 
 namespace Storvia\Vantage\Console\Commands;
 
-use Storvia\Vantage\Models\VantageJob;
-use Storvia\Vantage\Support\TagAggregator;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Storvia\Vantage\Models\VantageJob;
+use Storvia\Vantage\Support\TagAggregator;
 
 class BackfillJobTags extends Command
 {

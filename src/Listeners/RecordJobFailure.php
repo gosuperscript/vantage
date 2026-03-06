@@ -2,6 +2,9 @@
 
 namespace Storvia\Vantage\Listeners;
 
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Notifications\JobFailedNotification;
 use Storvia\Vantage\Support\JobPerformanceContext;
@@ -9,9 +12,6 @@ use Storvia\Vantage\Support\PayloadExtractor;
 use Storvia\Vantage\Support\TagExtractor;
 use Storvia\Vantage\Support\Traits\ExtractsRetryOf;
 use Storvia\Vantage\Support\VantageLogger;
-use Illuminate\Queue\Events\JobFailed;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 
 class RecordJobFailure
 {

@@ -1,10 +1,10 @@
 <?php
 
-use Storvia\Vantage\Models\VantageJob;
-use Storvia\Vantage\Support\QueueDepthChecker;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Storvia\Vantage\Models\VantageJob;
+use Storvia\Vantage\Support\QueueDepthChecker;
 
 beforeEach(function () {
     Schema::dropIfExists('jobs');

@@ -1,7 +1,7 @@
 <?php
 
-use Storvia\Vantage\Models\VantageJob;
 use Illuminate\Support\Str;
+use Storvia\Vantage\Models\VantageJob;
 
 function makeJob(array $overrides = []): VantageJob
 {

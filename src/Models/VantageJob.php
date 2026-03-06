@@ -2,9 +2,9 @@
 
 namespace Storvia\Vantage\Models;
 
-use Storvia\Vantage\Database\Factories\VantageJobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Storvia\Vantage\Database\Factories\VantageJobFactory;
 
 class VantageJob extends Model
 {

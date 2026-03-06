@@ -2,10 +2,10 @@
 
 namespace Storvia\Vantage\Support;
 
-use Storvia\Vantage\Models\VantageJob;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Storvia\Vantage\Models\VantageJob;
 
 /**
  * Efficient tag aggregation service that uses database-specific optimizations.

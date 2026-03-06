@@ -2,16 +2,16 @@
 
 namespace Storvia\Vantage\Http\Controllers;
 
-use Storvia\Vantage\Models\VantageJob;
-use Storvia\Vantage\Support\QueueDepthChecker;
-use Storvia\Vantage\Support\TagAggregator;
-use Storvia\Vantage\Support\VantageLogger;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Jobs\Job;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Storvia\Vantage\Models\VantageJob;
+use Storvia\Vantage\Support\QueueDepthChecker;
+use Storvia\Vantage\Support\TagAggregator;
+use Storvia\Vantage\Support\VantageLogger;
 
 class QueueMonitorController extends Controller
 {

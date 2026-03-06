@@ -2,12 +2,12 @@
 
 namespace Storvia\Vantage\Notifications;
 
-use Storvia\Vantage\Models\VantageJob;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\SlackMessage;
 use Illuminate\Notifications\Notification;
+use Storvia\Vantage\Models\VantageJob;
 
 class JobFailedNotification extends Notification implements ShouldQueue
 {

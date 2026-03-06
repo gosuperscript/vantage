@@ -2,8 +2,8 @@
 
 namespace Storvia\Vantage\Console\Commands;
 
-use Storvia\Vantage\Models\VantageJob;
 use Illuminate\Console\Command;
+use Storvia\Vantage\Models\VantageJob;
 
 class CleanupStuckJobs extends Command
 {

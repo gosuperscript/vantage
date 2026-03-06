@@ -2,8 +2,8 @@
 
 namespace Storvia\Vantage\Support\Traits;
 
-use Storvia\Vantage\Support\VantageLogger;
 use Illuminate\Support\Str;
+use Storvia\Vantage\Support\VantageLogger;
 
 trait ExtractsRetryOf
 {

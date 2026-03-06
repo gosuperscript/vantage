@@ -1,8 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use Storvia\Vantage\Http\Controllers\QueueMonitorController;
 use Storvia\Vantage\Http\Middleware\AuthorizeVantage;
-use Illuminate\Support\Facades\Route;
 
 $prefix = trim(config('vantage.route_prefix', 'vantage'), '/');
 $prefix = $prefix === '' ? 'vantage' : $prefix;

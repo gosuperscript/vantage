@@ -2,11 +2,11 @@
 
 namespace Storvia\Vantage\Tests\Feature;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Str;
 use Storvia\Vantage\Http\Controllers\QueueMonitorController;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Vantage;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Support\Str;
 
 beforeEach(function () {
     VantageJob::query()->delete();

@@ -1,7 +1,7 @@
 <?php
 
-use Storvia\Vantage\Support\VantageLogger;
 use Illuminate\Support\Facades\Log;
+use Storvia\Vantage\Support\VantageLogger;
 
 it('logs when enabled', function () {
     Log::spy();

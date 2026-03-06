@@ -2,9 +2,9 @@
 
 namespace Storvia\Vantage\Tests;
 
-use Storvia\Vantage\VantageServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Storvia\Vantage\VantageServiceProvider;
 
 abstract class TestCase extends Orchestra
 {

@@ -1,8 +1,8 @@
 <?php
 
+use Illuminate\Queue\Events\JobProcessed;
 use Storvia\Vantage\Listeners\RecordJobSuccess;
 use Storvia\Vantage\Models\VantageJob;
-use Illuminate\Queue\Events\JobProcessed;
 
 it('skips counting released jobs as processed', function () {
     VantageJob::query()->delete();

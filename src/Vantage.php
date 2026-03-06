@@ -2,11 +2,11 @@
 
 namespace Storvia\Vantage;
 
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\QueueDepthChecker;
 use Storvia\Vantage\Support\VantageLogger;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class Vantage
 {

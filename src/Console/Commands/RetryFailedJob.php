@@ -2,9 +2,9 @@
 
 namespace Storvia\Vantage\Console\Commands;
 
-use Storvia\Vantage\Models\VantageJob;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
+use Storvia\Vantage\Models\VantageJob;
 
 class RetryFailedJob extends Command
 {
