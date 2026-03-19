@@ -2,6 +2,7 @@
 
 namespace Storvia\Vantage\Tests\Feature;
 
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Str;
 use Storvia\Vantage\Http\Controllers\QueueMonitorController;
@@ -14,7 +15,7 @@ beforeEach(function () {
 
 class TestSecureJob implements ShouldQueue
 {
-    use \Illuminate\Bus\Queueable;
+    use Queueable;
 
     public $testProperty;
 
