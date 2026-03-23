@@ -2,6 +2,15 @@
 
 All notable changes to `vantage` will be documented in this file.
 
+## v0.1.24 - 2026-03-23
+
+### What's Changed
+
+* Refactor/enhancements by @houdaslassi in https://github.com/storviaio/vantage/pull/58
+* feat: add Laravel 13 support by @houdaslassi in https://github.com/storviaio/vantage/pull/59
+
+**Full Changelog**: https://github.com/storviaio/vantage/compare/v0.1.23...v0.1.24
+
 ## v0.1.23 - 2026-03-03
 
 ### What's Changed
