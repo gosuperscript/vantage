@@ -18,7 +18,7 @@ class Vantage
      */
     public function queueDepth(?string $queue = null): Collection
     {
-        return app(QueueDepthChecker::class)->check($queue);
+        return collect(QueueDepthChecker::getQueueDepth($queue));
     }
 
     /**
