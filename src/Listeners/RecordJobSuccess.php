@@ -3,6 +3,7 @@
 namespace Storvia\Vantage\Listeners;
 
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\JobPerformanceContext;
 use Storvia\Vantage\Support\PayloadExtractor;

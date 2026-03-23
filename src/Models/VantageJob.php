@@ -4,8 +4,36 @@ namespace Storvia\Vantage\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Storvia\Vantage\Database\Factories\VantageJobFactory;
 
+/**
+ * @property int $id
+ * @property string $status
+ * @property string $job_uuid
+ * @property string $job_class
+ * @property string $queue
+ * @property string|null $connection
+ * @property int $attempt
+ * @property int|null $retried_from_id
+ * @property array|null $payload
+ * @property array|null $job_tags
+ * @property string|null $exception_class
+ * @property string|null $exception_message
+ * @property string|null $stack
+ * @property Carbon|null $started_at
+ * @property Carbon|null $finished_at
+ * @property int|null $duration_ms
+ * @property int|null $memory_start_bytes
+ * @property int|null $memory_end_bytes
+ * @property int|null $memory_peak_start_bytes
+ * @property int|null $memory_peak_end_bytes
+ * @property int|null $memory_peak_delta_bytes
+ * @property int|null $cpu_user_ms
+ * @property int|null $cpu_sys_ms
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class VantageJob extends Model
 {
     use HasFactory;

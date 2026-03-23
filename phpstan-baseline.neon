@@ -13,16 +13,10 @@ parameters:
 			path: database/migrations/2025_09_23_000000_create_queue_job_runs_table.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_class\.$#'
-			identifier: property.notFound
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
 			count: 1
-			path: src/Console/Commands/CleanupStuckJobs.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$started_at\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Console/Commands/CleanupStuckJobs.php
+			path: src/Console/Commands/BackfillJobTags.php
 
 		-
 			message: '#^Negated boolean expression is always true\.$#'
@@ -31,82 +25,10 @@ parameters:
 			path: src/Console/Commands/PruneOldJobs.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$exception_message\.$#'
-			identifier: property.notFound
+			message: '#^Parameter \#1 \$json of function json_decode expects string, array given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Console/Commands/RetryFailedJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_class\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Console/Commands/RetryFailedJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_tags\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Console/Commands/RetryFailedJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$payload\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Console/Commands/RetryFailedJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Console/Commands/RetryFailedJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$duration_ms\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_class\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_tags\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$payload\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 3
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\|Illuminate\\Database\\Eloquent\\Collection\<int, HoudaSlassi\\Vantage\\Models\\VantageJob\>\:\:\$job_class\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\|Illuminate\\Database\\Eloquent\\Collection\<int, HoudaSlassi\\Vantage\\Models\\VantageJob\>\:\:\$retried_from_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\|Illuminate\\Database\\Eloquent\\Collection\<int, HoudaSlassi\\Vantage\\Models\\VantageJob\>\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Http/Controllers/QueueMonitorController.php
 
 		-
 			message: '''
@@ -122,108 +44,6 @@ parameters:
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:map\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 2
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,HoudaSlassi\\Vantage\\Models\\VantageJob\>\:\:flatMap\(\) contains unresolvable type\.$#'
-			identifier: argument.unresolvableType
-			count: 2
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$cpu_sys_ms\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$cpu_user_ms\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$duration_ms\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$exception_class\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$exception_message\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$finished_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_class\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_end_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_delta_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_end_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_start_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$stack\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$started_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Support\\Carbon\:\:diffInRealMilliseconds\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Listeners/RecordJobFailure.php
 
 		-
 			message: '#^Call to function method_exists\(\) with Illuminate\\Contracts\\Queue\\Job and ''getJobId'' will always evaluate to true\.$#'
@@ -286,72 +106,6 @@ parameters:
 			path: src/Listeners/RecordJobStart.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$cpu_sys_ms\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$cpu_user_ms\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$duration_ms\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$finished_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_end_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_delta_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_end_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_start_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$started_at\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$status\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Support\\Carbon\:\:diffInRealMilliseconds\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: src/Listeners/RecordJobSuccess.php
-
-		-
 			message: '#^Call to function method_exists\(\) with Illuminate\\Contracts\\Queue\\Job and ''getJobId'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 2
@@ -388,100 +142,10 @@ parameters:
 			path: src/Listeners/RecordJobSuccess.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$cpu_sys_ms\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$cpu_user_ms\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$duration_ms\.$#'
-			identifier: property.notFound
+			message: '#^Parameter \#1 \$json of function json_decode expects string, array given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_tags\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_end_bytes\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_delta_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_end_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_peak_start_bytes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$memory_start_bytes\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$payload\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Models/VantageJob.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$attempt\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Notifications/JobFailedNotification.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$exception_class\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Notifications/JobFailedNotification.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$exception_message\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Notifications/JobFailedNotification.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_class\.$#'
-			identifier: property.notFound
-			count: 3
-			path: src/Notifications/JobFailedNotification.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$queue\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Notifications/JobFailedNotification.php
-
-		-
-			message: '#^Access to protected property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$connection\.$#'
-			identifier: property.protected
-			count: 2
-			path: src/Notifications/JobFailedNotification.php
 
 		-
 			message: '#^Call to method error\(\) on an unknown class Illuminate\\Notifications\\Messages\\SlackMessage\.$#'
@@ -496,10 +160,22 @@ parameters:
 			path: src/Notifications/JobFailedNotification.php
 
 		-
-			message: '#^Method HoudaSlassi\\Vantage\\Notifications\\JobFailedNotification\:\:toSlack\(\) has invalid return type Illuminate\\Notifications\\Messages\\SlackMessage\.$#'
+			message: '#^Method Storvia\\Vantage\\Notifications\\JobFailedNotification\:\:toSlack\(\) has invalid return type Illuminate\\Notifications\\Messages\\SlackMessage\.$#'
 			identifier: class.notFound
 			count: 1
 			path: src/Notifications/JobFailedNotification.php
+
+		-
+			message: '#^Call to function is_array\(\) with non\-empty\-array\<mixed, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Support/JobRestorer.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Support/JobRestorer.php
 
 		-
 			message: '#^Ternary operator condition is always true\.$#'
@@ -508,43 +184,25 @@ parameters:
 			path: src/Support/QueueDepthChecker.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$failed\.$#'
+			message: '#^Access to an undefined property Storvia\\Vantage\\Models\\VantageJob\:\:\$failed\.$#'
 			identifier: property.notFound
 			count: 1
 			path: src/Vantage.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$job_class\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Vantage.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$payload\.$#'
+			message: '#^Access to an undefined property Storvia\\Vantage\\Models\\VantageJob\:\:\$processed\.$#'
 			identifier: property.notFound
 			count: 2
 			path: src/Vantage.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$processed\.$#'
-			identifier: property.notFound
-			count: 2
-			path: src/Vantage.php
-
-		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$status\.$#'
+			message: '#^Access to an undefined property Storvia\\Vantage\\Models\\VantageJob\:\:\$total\.$#'
 			identifier: property.notFound
 			count: 1
 			path: src/Vantage.php
 
 		-
-			message: '#^Access to an undefined property HoudaSlassi\\Vantage\\Models\\VantageJob\:\:\$total\.$#'
-			identifier: property.notFound
-			count: 1
-			path: src/Vantage.php
-
-		-
-			message: '#^Call to an undefined method HoudaSlassi\\Vantage\\Support\\QueueDepthChecker\:\:check\(\)\.$#'
-			identifier: method.notFound
+			message: '#^Call to function is_string\(\) with non\-falsy\-string will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
 			count: 1
 			path: src/Vantage.php
