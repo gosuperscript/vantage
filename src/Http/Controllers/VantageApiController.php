@@ -44,7 +44,7 @@ class VantageApiController extends Controller
      */
     public function stats(Request $request): JsonResponse
     {
-        $period = $request->get('period', '30d');
+        $period = $request->query('period', '30d');
         $since = $this->getSinceDate($period);
 
         $stats = [
@@ -135,7 +135,7 @@ class VantageApiController extends Controller
      */
     public function jobs(Request $request): JsonResponse
     {
-        $perPage = min((int) $request->get('per_page', 50), 100);
+        $perPage = min((int) $request->query('per_page', 50), 100);
 
         $query = VantageJob::select([
             'id', 'uuid', 'job_class', 'queue', 'connection', 'attempt',
@@ -209,7 +209,7 @@ class VantageApiController extends Controller
      */
     public function tags(Request $request): JsonResponse
     {
-        $period = $request->get('period', '7d');
+        $period = $request->query('period', '7d');
         $since = $this->getSinceDate($period);
 
         $tagAggregator = new TagAggregator;
@@ -231,7 +231,7 @@ class VantageApiController extends Controller
      */
     public function failed(Request $request): JsonResponse
     {
-        $perPage = min((int) $request->get('per_page', 50), 100);
+        $perPage = min((int) $request->query('per_page', 50), 100);
 
         $paginator = VantageJob::select([
             'id', 'uuid', 'job_class', 'queue', 'connection', 'attempt',
@@ -274,9 +274,8 @@ class VantageApiController extends Controller
         }
 
         try {
-            if (! is_string($jobClass) ||
-                (! is_subclass_of($jobClass, ShouldQueue::class) &&
-                 ! is_subclass_of($jobClass, Job::class))) {
+            if (! is_subclass_of($jobClass, ShouldQueue::class) &&
+                ! is_subclass_of($jobClass, Job::class)) {
                 return response()->json(['error' => "Invalid job class: {$jobClass}"], 422);
             }
 
@@ -333,7 +332,7 @@ class VantageApiController extends Controller
             return response()->json(['data' => [], 'meta' => ['available' => false]]);
         }
 
-        $limit = min((int) $request->get('limit', 10), 100);
+        $limit = min((int) $request->query('limit', 10), 100);
 
         $batches = DB::table('job_batches')
             ->orderBy('created_at', 'desc')
@@ -362,7 +361,7 @@ class VantageApiController extends Controller
 
     protected function applyTagFilters($query, Request $request): void
     {
-        $tagsParam = $request->get('tags');
+        $tagsParam = $request->query('tags');
 
         if (! empty($tagsParam) && trim($tagsParam) !== '') {
             $tags = is_array($tagsParam) ? $tagsParam : explode(',', $tagsParam);
