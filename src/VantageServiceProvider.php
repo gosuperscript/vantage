@@ -2,6 +2,7 @@
 
 namespace Storvia\Vantage;
 
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
@@ -74,6 +75,6 @@ class VantageServiceProvider extends ServiceProvider
         // Listen to Laravel's built-in queue events
         Event::listen(JobProcessing::class, [Listeners\RecordJobStart::class, 'handle']);
         Event::listen(JobProcessed::class, [Listeners\RecordJobSuccess::class, 'handle']);
-        Event::listen(JobFailed::class, [Listeners\RecordJobFailure::class, 'handle']);
+        Event::listen(JobExceptionOccurred::class, [Listeners\RecordJobFailure::class, 'handle']);
     }
 }

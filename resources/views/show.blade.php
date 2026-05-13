@@ -50,6 +50,11 @@
                                 <i data-lucide="x-circle" class="w-4 h-4" aria-hidden="true"></i>
                                 Failed
                             </span>
+                        @elseif($job->status === 'released')
+                            <span class="px-3 py-1 inline-flex items-center gap-1 text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                <i data-lucide="check-circle" class="w-4 h-4" aria-hidden="true"></i>
+                                Released
+                            </span>
                         @else
                             <span class="px-3 py-1 inline-flex items-center gap-1 text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                 <i data-lucide="clock" class="w-4 h-4" aria-hidden="true"></i>
@@ -175,12 +180,12 @@
                     <i data-lucide="refresh-cw" class="w-5 h-5 text-gray-500" aria-hidden="true"></i>
                     Retry Chain
                 </h3>
-                
+
                 @if(!empty($retryChain))
                     <div class="mb-4">
                         <p class="text-sm text-gray-500 mb-2">Original Job:</p>
                         @foreach($retryChain as $retry)
-                            <a href="{{ route('vantage.jobs.show', $retry->id) }}" 
+                            <a href="{{ route('vantage.jobs.show', $retry->id) }}"
                                class="block text-sm text-indigo-600 hover:text-indigo-800 mb-1">
                                 #{{ $retry->id }} - {{ $retry->status }} ({{ $retry->created_at->diffForHumans() }})
                             </a>
@@ -196,7 +201,7 @@
                     <div>
                         <p class="text-sm text-gray-500 mb-2">Retried As:</p>
                         @foreach($retries as $retry)
-                            <a href="{{ route('vantage.jobs.show', $retry->id) }}" 
+                            <a href="{{ route('vantage.jobs.show', $retry->id) }}"
                                class="block text-sm text-indigo-600 hover:text-indigo-800 mb-1">
                                 #{{ $retry->id }} - {{ $retry->status }} ({{ $retry->created_at->diffForHumans() }})
                             </a>

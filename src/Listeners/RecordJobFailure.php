@@ -2,7 +2,7 @@
 
 namespace Storvia\Vantage\Listeners;
 
-use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
@@ -18,7 +18,7 @@ class RecordJobFailure
     use ChecksJobExclusion;
     use ExtractsRetryOf;
 
-    public function handle(JobFailed $event): void
+    public function handle(JobExceptionOccurred $event): void
     {
         // Master switch: if package is disabled, don't track anything
         if (! config('vantage.enabled', true)) {
@@ -139,11 +139,6 @@ class RecordJobFailure
             ]);
         }
 
-        // Update any previous attempts at this job as failed.
-        VantageJob::where('uuid', $uuid)
-            ->where('attempt', '<', $event->job->attempts())
-            ->update(['status' => 'failed']);
-
         VantageLogger::info('Queue Monitor: Job failed', [
             'id' => $row->id,
             'job_class' => $row->job_class,
@@ -160,7 +155,7 @@ class RecordJobFailure
     /**
      * Get best available UUID for the job
      */
-    protected function bestUuid(JobFailed $event): string
+    protected function bestUuid(JobExceptionOccurred $event): string
     {
         // Try Laravel's built-in UUID
         if (method_exists($event->job, 'uuid') && $event->job->uuid()) {
@@ -179,7 +174,7 @@ class RecordJobFailure
     /**
      * Get job class name
      */
-    protected function jobClass(JobFailed $event): string
+    protected function jobClass(JobExceptionOccurred $event): string
     {
         if (method_exists($event->job, 'resolveName')) {
             return $event->job->resolveName();

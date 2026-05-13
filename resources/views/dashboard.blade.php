@@ -558,8 +558,8 @@
                             <span class="text-red-600">{{ $batch->failed_jobs }} failed</span>
                         @endif
                         @php
-                            $progress = $batch->total_jobs > 0 
-                                ? round((($batch->total_jobs - $batch->pending_jobs) / $batch->total_jobs) * 100) 
+                            $progress = $batch->total_jobs > 0
+                                ? round((($batch->total_jobs - $batch->pending_jobs) / $batch->total_jobs) * 100)
                                 : 0;
                         @endphp
                         <span class="text-gray-400">&bull;</span>
@@ -636,6 +636,10 @@
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                         Failed
                                     </span>
+                                @elseif($job->status === 'released')
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Released
+                                    </span>
                                 @else
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                         Processing
@@ -672,26 +676,26 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('successRateChart');
-    
+
     if (!ctx) {
         return;
     }
-    
+
     // Prepare data - ensure we get proper arrays
     const jobsData = @json($jobsByHour->toArray());
-    
+
     if (!jobsData || jobsData.length === 0) {
         if (ctx && ctx.parentElement) {
             ctx.parentElement.innerHTML = '<div class="p-4 text-gray-500 text-center">No data available for the selected time period.</div>';
         }
         return;
     }
-    
+
     // Extract arrays from data
     const hours = jobsData.map(item => item.hour);
     const totals = jobsData.map(item => parseInt(item.count) || 0);
     const failures = jobsData.map(item => parseInt(item.failed_count) || 0);
-    
+
     // Ensure arrays are valid and same length
     if (hours.length === 0 || totals.length === 0 || hours.length !== totals.length) {
         if (ctx && ctx.parentElement) {
@@ -699,7 +703,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return;
     }
-    
+
     // Calculate success rates - ensure failures is a number
     const successRates = totals.map((total, index) => {
         const failed = parseInt(failures[index]) || 0;
@@ -707,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (totalNum === 0) return 0;
         return parseFloat(((totalNum - failed) / totalNum * 100).toFixed(1));
     });
-    
+
     // Format labels - handle date parsing
     const labels = hours.map(h => {
         try {
@@ -728,26 +732,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return h;
         }
     });
-    
+
     // Ensure we have valid data
     if (labels.length === 0 || successRates.length === 0 || totals.length === 0) {
         return;
     }
-    
+
     // For single data point, create a small time range to show as a line
     // This ensures the chart always shows as a line chart with filled area
     let chartLabels = labels;
     let chartSuccessRates = successRates;
     let chartTotals = totals;
     let chartFailures = failures;
-    
+
     if (labels.length === 1) {
         // Create a second point 1 hour later to form a line segment
         try {
             const singleDate = new Date(hours[0].replace(' ', 'T'));
             const nextHour = new Date(singleDate.getTime() + 60 * 60 * 1000);
             const nextLabel = nextHour.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit' });
-            
+
             chartLabels = [labels[0], nextLabel];
             chartSuccessRates = [successRates[0], successRates[0]];
             chartTotals = [totals[0], totals[0]];
@@ -760,12 +764,12 @@ document.addEventListener('DOMContentLoaded', function() {
             chartFailures = [failures[0], failures[0]];
         }
     }
-    
+
     try {
         // Point radius - smaller for single point (since we duplicate it)
         const pointRadius = 4;
         const pointHoverRadius = 6;
-        
+
         const chart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -909,14 +913,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-    
+
     } catch (error) {
         // Show error message to user
         if (ctx && ctx.parentElement) {
             ctx.parentElement.innerHTML = '<div class="p-4 text-red-600">Error loading chart: ' + error.message + '</div>';
         }
     }
-    
+
     // Auto-refresh every 30 seconds
     setTimeout(function() {
         location.reload();

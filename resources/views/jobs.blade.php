@@ -38,6 +38,7 @@
                         <option value="">All Statuses</option>
                         <option value="processed" {{ request('status') === 'processed' ? 'selected' : '' }}>Processed</option>
                         <option value="failed" {{ request('status') === 'failed' ? 'selected' : '' }}>Failed</option>
+                        <option value="released" {{ request('status') === 'released' ? 'selected' : '' }}>Released</option>
                         <option value="processing" {{ request('status') === 'processing' ? 'selected' : '' }}>Processing</option>
                     </select>
                 </div>
@@ -112,23 +113,23 @@ window.addTagToFilter = function(tag) {
     if (!tag) {
         return false;
     }
-    
+
     // Find the tags input in the main filters form
     const form = document.getElementById('jobs-filter-form');
     if (!form) {
         return false;
     }
-    
+
     const tagsInput = form.querySelector('input[name="tags"]');
     if (!tagsInput) {
         return false;
     }
-    
+
     const currentTags = tagsInput.value.trim();
-    
+
     // Normalize tag (already lowercased from PHP, but ensure it's trimmed)
     const normalizedTag = String(tag).toLowerCase().trim();
-    
+
     let newTagsValue;
     if (currentTags === '') {
         newTagsValue = normalizedTag;
@@ -143,13 +144,13 @@ window.addTagToFilter = function(tag) {
             newTagsValue = newTags.join(', ');
         }
     }
-    
+
     // Set the value
     tagsInput.value = newTagsValue;
-    
+
     // Submit the main form
     form.submit();
-    
+
     return false; // Prevent default
 };
 </script>
@@ -169,13 +170,13 @@ window.addTagToFilter = function(tag) {
                     $tagIcon = $tagData['failed'] > 0 ? 'x-circle' : ($tagData['processed'] > 0 ? 'check-circle' : 'tag');
                     $tagIconColor = $tagData['failed'] > 0 ? 'text-red-600' : ($tagData['processed'] > 0 ? 'text-green-600' : 'text-blue-600');
                 @endphp
-                <button type="button" 
+                <button type="button"
                         data-tag="{{ $tagValue }}"
                         onclick="addTagToFilter('{{ addslashes($tagValue) }}')"
                         class="tag-filter-button group inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
                                {{ $isActive ? 'ring-2 ring-indigo-500 ' : '' }}
-                               {{ $tagData['failed'] > 0 ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100' : 
-                                  ($tagData['processed'] > 0 ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100' : 
+                               {{ $tagData['failed'] > 0 ? 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100' :
+                                  ($tagData['processed'] > 0 ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100' :
                                   'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100') }}">
                     <i data-lucide="{{ $tagIcon }}" class="w-4 h-4 mr-2 {{ $tagIconColor }}" aria-hidden="true"></i>
                     <span>{{ $tagData['tag'] }}</span>
@@ -241,6 +242,10 @@ window.addTagToFilter = function(tag) {
                         @elseif($job->status === 'failed')
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                 Failed
+                            </span>
+                        @elseif($job->status === 'released')
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                Released
                             </span>
                         @else
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">

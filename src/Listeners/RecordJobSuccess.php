@@ -29,13 +29,13 @@ class RecordJobSuccess
 
         // Some jobs (like rate-limited ones) are "processed" only to be released immediately.
         // Laravel exposes helpers to detect this so we don't count them as successful runs.
-        if (method_exists($event->job, 'isReleased') && $event->job->isReleased()) {
-            VantageLogger::debug('Queue Monitor: Job was released, skipping processed record', [
-                'job_class' => $this->jobClass($event),
-            ]);
+        // if (method_exists($event->job, 'isReleased') && $event->job->isReleased()) {
+        //     VantageLogger::debug('Queue Monitor: Job was released, skipping processed record', [
+        //         'job_class' => $this->jobClass($event),
+        //     ]);
 
-            return;
-        }
+        //     return;
+        // }
 
         $uuid = $this->bestUuid($event);
         $jobClass = $this->jobClass($event);
@@ -52,6 +52,7 @@ class RecordJobSuccess
         if ($hasStableUuid) {
             $row = VantageJob::where('uuid', $uuid)
                 ->where('status', 'processing')
+                ->where('attempt', $event->job->attempts())
                 ->first();
         }
 
@@ -66,6 +67,9 @@ class RecordJobSuccess
                 ->orderByDesc('id')
                 ->first();
         }
+
+        // Determine new status
+        $status = method_exists($event->job, 'isReleased') && $event->job->isReleased() ? 'released' : 'processed';
 
         if ($row) {
             // Capture end metrics
@@ -95,7 +99,7 @@ class RecordJobSuccess
             }
 
             // Update existing record
-            $row->status = 'processed';
+            $row->status = $status;
             $row->finished_at = now();
             if ($row->started_at) {
                 $duration = $row->finished_at->diffInUTCMilliseconds($row->started_at, true);
@@ -136,7 +140,7 @@ class RecordJobSuccess
                 'queue' => $queue,
                 'connection' => $connection,
                 'attempt' => $event->job->attempts(),
-                'status' => 'processed',
+                'status' => $status,
                 'finished_at' => now(),
                 'retried_from_id' => $this->getRetryOf($event),
                 'payload' => PayloadExtractor::getPayload($event),
