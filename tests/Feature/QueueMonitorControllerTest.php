@@ -7,6 +7,26 @@ beforeEach(function () {
     VantageJob::query()->delete();
 });
 
+it('counts released jobs in the dashboard processed stat', function () {
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\ProcessedJob',
+        'status' => 'processed',
+        'created_at' => now()->subDay(),
+    ]);
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\ReleasedJob',
+        'status' => 'released',
+        'created_at' => now()->subDay(),
+    ]);
+
+    $this->get('/vantage')
+        ->assertOk()
+        ->assertViewHas('stats', fn (array $stats) => $stats['processed'] === 2);
+});
+
 it('displays dashboard with job statistics', function () {
     // Create test jobs
     VantageJob::create([
@@ -77,6 +97,61 @@ it('displays individual job details', function () {
         ->assertSee('important', false)
         ->assertSee('email', false)
         ->assertSee('1.5s', false);
+});
+
+it('shows disabled prev and next attempt links when there is only one run for the uuid', function () {
+    $job = VantageJob::create([
+        'uuid' => 'solo-uuid',
+        'job_class' => 'App\\Jobs\\TestJob',
+        'status' => 'processed',
+        'attempt' => 1,
+    ]);
+
+    $response = $this->get("/vantage/jobs/{$job->id}");
+
+    $response->assertStatus(200);
+    expect(substr_count($response->getContent(), 'aria-disabled="true"'))->toBe(2);
+});
+
+it('links prev and next attempt for the same job uuid', function () {
+    $uuid = 'shared-uuid-attempts';
+
+    $first = VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\TestJob',
+        'status' => 'failed',
+        'attempt' => 1,
+    ]);
+
+    $second = VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\TestJob',
+        'status' => 'processed',
+        'attempt' => 2,
+    ]);
+
+    $third = VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\TestJob',
+        'status' => 'processed',
+        'attempt' => 3,
+    ]);
+
+    $this->get("/vantage/jobs/{$second->id}")
+        ->assertStatus(200)
+        ->assertSee(route('vantage.jobs.show', $first->id), false)
+        ->assertSee(route('vantage.jobs.show', $third->id), false)
+        ->assertDontSee('aria-disabled="true"', false);
+
+    $this->get("/vantage/jobs/{$first->id}")
+        ->assertStatus(200)
+        ->assertSee(route('vantage.jobs.show', $second->id), false)
+        ->assertSee('aria-disabled="true"', false);
+
+    $this->get("/vantage/jobs/{$third->id}")
+        ->assertStatus(200)
+        ->assertSee(route('vantage.jobs.show', $second->id), false)
+        ->assertSee('aria-disabled="true"', false);
 });
 
 it('displays retry chain in job details', function () {

@@ -24,10 +24,10 @@ class QueueMonitorController extends Controller
         $period = $request->input('period', '30d'); // Changed default to 30 days
         $since = $this->getSinceDate($period);
 
-        // Overall statistics
+        // Overall statistics (processed card includes released: rate-limited jobs that re-queued)
         $stats = [
             'total' => VantageJob::where('created_at', '>', $since)->count(),
-            'processed' => VantageJob::where('created_at', '>', $since)->where('status', 'processed')->count(),
+            'processed' => VantageJob::where('created_at', '>', $since)->whereIn('status', ['processed', 'released'])->count(),
             'failed' => VantageJob::where('created_at', '>', $since)->where('status', 'failed')->count(),
             'processing' => VantageJob::where('status', 'processing')
                 ->where('created_at', '>', now()->subHour()) // Only recent processing jobs
@@ -37,7 +37,7 @@ class QueueMonitorController extends Controller
                 ->avg('duration_ms'),
         ];
 
-        // Calculate success rate based on completed jobs only (processed + failed)
+        // Success rate: non-failures (processed + released) over all terminal outcomes in the period
         $completedJobs = $stats['processed'] + $stats['failed'];
         $stats['success_rate'] = $completedJobs > 0
             ? round(($stats['processed'] / $completedJobs) * 100, 1)
@@ -360,7 +360,23 @@ class QueueMonitorController extends Controller
             $retryChain = $this->getRetryChain($job);
         }
 
-        return view('vantage::show', compact('job', 'retryChain'));
+        $prevAttemptJob = null;
+        $nextAttemptJob = null;
+        if ($job->uuid) {
+            $prevAttemptJob = VantageJob::where('uuid', $job->uuid)
+                ->where('attempt', '<', $job->attempt)
+                ->orderByDesc('attempt')
+                ->orderByDesc('id')
+                ->first();
+
+            $nextAttemptJob = VantageJob::where('uuid', $job->uuid)
+                ->where('attempt', '>', $job->attempt)
+                ->orderBy('attempt')
+                ->orderBy('id')
+                ->first();
+        }
+
+        return view('vantage::show', compact('job', 'retryChain', 'prevAttemptJob', 'nextAttemptJob'));
     }
 
     /**

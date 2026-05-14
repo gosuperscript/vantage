@@ -13,7 +13,35 @@
         <h2 class="text-2xl font-bold text-gray-900">Job #{{ $job->id }}</h2>
         <p class="text-sm text-gray-500">{{ $job->job_class }}</p>
     </div>
-    <div class="flex gap-2">
+    <div class="flex flex-wrap items-center justify-end gap-2">
+        @if($prevAttemptJob)
+            <a href="{{ route('vantage.jobs.show', $prevAttemptJob->id) }}"
+               title="Attempt #{{ $prevAttemptJob->attempt }}"
+               class="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-50 inline-flex items-center gap-1.5 text-sm">
+                <i data-lucide="chevron-left" class="w-4 h-4" aria-hidden="true"></i>
+                Previous attempt
+            </a>
+        @else
+            <span class="bg-gray-100 border border-gray-200 text-gray-400 px-3 py-2 rounded-md inline-flex items-center gap-1.5 text-sm cursor-not-allowed select-none"
+                  aria-disabled="true">
+                <i data-lucide="chevron-left" class="w-4 h-4" aria-hidden="true"></i>
+                Previous attempt
+            </span>
+        @endif
+        @if($nextAttemptJob)
+            <a href="{{ route('vantage.jobs.show', $nextAttemptJob->id) }}"
+               title="Attempt #{{ $nextAttemptJob->attempt }}"
+               class="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-50 inline-flex items-center gap-1.5 text-sm">
+                Next attempt
+                <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
+            </a>
+        @else
+            <span class="bg-gray-100 border border-gray-200 text-gray-400 px-3 py-2 rounded-md inline-flex items-center gap-1.5 text-sm cursor-not-allowed select-none"
+                  aria-disabled="true">
+                Next attempt
+                <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
+            </span>
+        @endif
         @if($job->status === 'failed')
             <form action="{{ route('vantage.jobs.retry', $job->id) }}" method="POST" class="inline">
                 @csrf
