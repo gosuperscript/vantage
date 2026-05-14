@@ -1,19 +1,41 @@
 # Vantage
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/storviaio/vantage.svg?style=flat-square)](https://packagist.org/packages/storviaio/vantage)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/storviaio/vantage/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/storviaio/vantage/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/storviaio/vantage/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/storviaio/vantage/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/storviaio/vantage.svg?style=flat-square)](https://packagist.org/packages/storviaio/vantage)
-[![License](https://img.shields.io/packagist/l/storviaio/vantage.svg?style=flat-square)](https://packagist.org/packages/storviaio/vantage)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/gosuperscript/vantage.svg?style=flat-square)](https://packagist.org/packages/gosuperscript/vantage)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/gosuperscript/vantage/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/gosuperscript/vantage/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/gosuperscript/vantage/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/gosuperscript/vantage/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/gosuperscript/vantage.svg?style=flat-square)](https://packagist.org/packages/gosuperscript/vantage)
+[![License](https://img.shields.io/packagist/l/gosuperscript/vantage.svg?style=flat-square)](https://packagist.org/packages/gosuperscript/vantage)
 
 A Laravel package that tracks and monitors your queue jobs. 
 Automatically records job execution history, failures, retries, 
 and provides a simple web interface to view everything.
 
+## This fork (`gosuperscript/vantage`)
+
+This repository builds on [storviaio/vantage](https://github.com/storviaio/vantage). To use this package from Composer, require **`gosuperscript/vantage`** instead of `storviaio/vantage`.
+
+The following behaviour and tooling are specific to this fork (upstream sections below still apply unless noted here).
+
+### Released job status
+
+When a worker finishes a job but Laravel reports it as **released** back to the queue (for example after `release()` when rate limiting), Vantage stores status **`released`** rather than counting it as **`processed`**. The dashboard and tag analytics include released counts, the jobs list can filter by **Released**, and success-rate style metrics treat released runs as non-failures so you can see backpressure separately from hard completions. Run migrations after upgrading so the `vantage_jobs.status` enum includes `released`.
+
+### Previous and next attempt navigation
+
+On the job detail page, **Previous attempt** and **Next attempt** move between recorded runs that share the same job UUID, which complements the retry chain view when you are stepping through failures and retries.
+
+### Centralized job restoration (`JobRestorer`)
+
+Retry and replay paths (web UI, `php artisan vantage:retry`, the optional JSON API, and `Vantage::retryJob()`) share a single **`JobRestorer`** that validates the stored payload, runs restricted `unserialize()` for the expected job class, and checks the restored object type. If your serialized jobs embed nested value objects, list their classes under **`unserialize.extra_allowed_classes`** in `config/vantage.php` so restoration can succeed without widening the allow list more than you intend.
+
+### Retry only from the latest attempt
+
+Retry is only offered for the **last recorded** row for a given UUID, so you cannot accidentally replay an older failed attempt when a newer attempt already exists. The web UI, API, Artisan command, and facade return a clear message in that case and point you at **Next attempt** when another row is available.
+
 ## Installation
 
 ```bash
-composer require storviaio/vantage
+composer require gosuperscript/vantage
 php artisan vendor:publish --tag=vantage-config
 php artisan migrate
 ```

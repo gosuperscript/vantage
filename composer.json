@@ -9,7 +9,7 @@
         "monitoring",
         "observability"
     ],
-    "homepage": "https://github.com/storviaio/vantage",
+    "homepage": "https://github.com/gosuperscript/vantage",
     "type": "library",
     "license": "MIT",
     "authors": [
