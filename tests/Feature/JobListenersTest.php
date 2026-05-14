@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Storvia\Vantage\Listeners\RecordJobFailure;
@@ -64,6 +64,7 @@ it('records job success and calculates duration', function () {
         'uuid' => 'test-uuid-123',
         'job_class' => 'App\\Jobs\\TestJob',
         'status' => 'processing',
+        'attempt' => 1,
         'started_at' => now()->subSeconds(5),
     ]);
 
@@ -139,7 +140,7 @@ it('updates same record from processing to failed', function () {
         }
     };
 
-    $event = new JobFailed('test-connection', $job, $exception);
+    $event = new JobExceptionOccurred('test-connection', $job, $exception);
     $listener = new RecordJobFailure;
     $listener->handle($event);
 
@@ -180,6 +181,7 @@ it('updates latest attempt record from processing to failed', function () {
     $job = new class
     {
         public $queue = 'default';
+
         public $tries = 2;
 
         public function getQueue()
@@ -203,12 +205,13 @@ it('updates latest attempt record from processing to failed', function () {
         }
     };
 
-    $event = new JobFailed('test-connection', $job, $exception);
+    $event = new JobExceptionOccurred('test-connection', $job, $exception);
     $listener = new RecordJobFailure;
     $listener->handle($event);
 
-    // Verify both job records were updated
-    expect(VantageJob::where('uuid', 'test-uuid-failed')->where('status', 'failed')->count())->toBe(2);
+    // Only the row for the failing attempt is updated
+    expect(VantageJob::where('uuid', 'test-uuid-failed')->where('status', 'failed')->where('attempt', 2)->count())->toBe(1)
+        ->and(VantageJob::where('uuid', 'test-uuid-failed')->where('status', 'processing')->where('attempt', 1)->count())->toBe(1);
 });
 
 it('updates same record from processing to processed', function () {
@@ -217,6 +220,7 @@ it('updates same record from processing to processed', function () {
         'uuid' => 'test-uuid-processed',
         'job_class' => 'App\\Jobs\\TestJob',
         'status' => 'processing',
+        'attempt' => 1,
         'started_at' => now()->subSeconds(5),
     ]);
 
@@ -291,7 +295,7 @@ it('records job failure with exception details', function () {
 
     $exception = new Exception('Test error message', 500);
 
-    $event = new JobFailed('test-connection', $job, $exception);
+    $event = new JobExceptionOccurred('test-connection', $job, $exception);
     $listener = new RecordJobFailure;
     $listener->handle($event);
 

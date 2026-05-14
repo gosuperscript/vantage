@@ -4,7 +4,7 @@ use Illuminate\Queue\Events\JobProcessed;
 use Storvia\Vantage\Listeners\RecordJobSuccess;
 use Storvia\Vantage\Models\VantageJob;
 
-it('skips counting released jobs as processed', function () {
+it('stores released jobs as released in the database', function () {
     VantageJob::query()->delete();
 
     $releasedJob = new class
@@ -43,7 +43,12 @@ it('skips counting released jobs as processed', function () {
     $event = new JobProcessed('database', $releasedJob);
     (new RecordJobSuccess)->handle($event);
 
-    expect(VantageJob::where('uuid', 'released-uuid')->exists())->toBeFalse();
+    $row = VantageJob::where('uuid', 'released-uuid')->first();
+
+    expect($row)->not->toBeNull()
+        ->and($row->status)->toBe('released')
+        ->and($row->job_class)->toBe('App\\Jobs\\RateLimitedJob')
+        ->and($row->finished_at)->not->toBeNull();
 });
 
 it('still counts normal processed jobs', function () {
@@ -53,6 +58,7 @@ it('still counts normal processed jobs', function () {
         'uuid' => 'normal-uuid',
         'job_class' => 'App\\Jobs\\NormalJob',
         'status' => 'processing',
+        'attempt' => 1,
         'started_at' => now()->subSecond(),
     ]);
 
