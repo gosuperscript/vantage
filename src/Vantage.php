@@ -101,6 +101,10 @@ class Vantage
             return false;
         }
 
+        if (! $job->isLastRecordedAttemptForJobUuid()) {
+            return false;
+        }
+
         // Get the expected job class from the stored job_class field
         $expectedJobClass = $job->job_class;
 

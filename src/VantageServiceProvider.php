@@ -7,7 +7,9 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
+use Storvia\Vantage\Support\PendingVantageRetry;
 
 class VantageServiceProvider extends ServiceProvider
 {
@@ -70,6 +72,16 @@ class VantageServiceProvider extends ServiceProvider
         if (config('vantage.api.enabled', false)) {
             $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         }
+
+        // Attach manual-retry parent id to the queue payload (not stripped by SerializesModels)
+        Queue::createPayloadUsing(function ($connection, $queue, array $payload): array {
+            $retryOf = PendingVantageRetry::peek();
+            if ($retryOf !== null) {
+                $payload['vantage_retry_of'] = $retryOf;
+            }
+
+            return $payload;
+        });
 
         // Listen to Laravel's built-in queue events
         Event::listen(JobProcessing::class, [Listeners\RecordJobStart::class, 'handle']);

@@ -77,7 +77,7 @@ class RecordJobStart
             'attempt' => $event->job->attempts(),
             'status' => 'processing',
             'started_at' => $createdAt,
-            'retried_from_id' => $this->getRetryOf($event),
+            'retried_from_id' => $this->getRetryOfForFirstQueueAttempt($event),
             'payload' => $payloadJson,
             'job_tags' => $tags,
             // telemetry columns (nullable if disabled/unsampled)

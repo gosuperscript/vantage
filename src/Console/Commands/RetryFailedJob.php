@@ -8,6 +8,7 @@ use Illuminate\Queue\Jobs\Job;
 use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\JobRestorer;
+use Storvia\Vantage\Support\PendingVantageRetry;
 
 class RetryFailedJob extends Command
 {
@@ -21,6 +22,12 @@ class RetryFailedJob extends Command
 
         if (! $run || $run->status !== 'failed') {
             $this->error('Job run not found or not failed.');
+
+            return self::FAILURE;
+        }
+
+        if (! $run->isLastRecordedAttemptForJobUuid()) {
+            $this->error(VantageJob::retryOnlyLastAttemptMessage());
 
             return self::FAILURE;
         }
@@ -49,9 +56,11 @@ class RetryFailedJob extends Command
 
         $job->queueMonitorRetryOf = $run->id;
 
-        dispatch($job)
-            ->onQueue($run->queue ?? 'default')
-            ->onConnection($run->connection ?? config('queue.default'));
+        PendingVantageRetry::whileRetrying($run->id, function () use ($job, $run) {
+            dispatch($job)
+                ->onQueue($run->queue ?? 'default')
+                ->onConnection($run->connection ?? config('queue.default'));
+        });
 
         $this->info("Retried job {$jobClass} from run #{$run->id}");
 

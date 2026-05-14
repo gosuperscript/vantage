@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\JobRestorer;
+use Storvia\Vantage\Support\PendingVantageRetry;
 use Storvia\Vantage\Support\QueueDepthChecker;
 use Storvia\Vantage\Support\TagAggregator;
 use Storvia\Vantage\Support\VantageLogger;
@@ -267,6 +268,10 @@ class VantageApiController extends Controller
             return response()->json(['error' => 'Only failed jobs can be retried.'], 422);
         }
 
+        if (! $run->isLastRecordedAttemptForJobUuid()) {
+            return response()->json(['error' => VantageJob::retryOnlyLastAttemptMessage()], 422);
+        }
+
         $jobClass = $run->job_class;
 
         if (! class_exists($jobClass)) {
@@ -289,9 +294,11 @@ class VantageApiController extends Controller
 
             $job->queueMonitorRetryOf = $run->id;
 
-            dispatch($job)
-                ->onQueue($run->queue ?? 'default')
-                ->onConnection($run->connection ?? config('queue.default'));
+            PendingVantageRetry::whileRetrying($run->id, function () use ($job, $run) {
+                dispatch($job)
+                    ->onQueue($run->queue ?? 'default')
+                    ->onConnection($run->connection ?? config('queue.default'));
+            });
 
             return response()->json(['message' => 'Job queued for retry.']);
         } catch (\Throwable $e) {

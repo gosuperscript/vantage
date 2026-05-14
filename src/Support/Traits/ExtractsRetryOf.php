@@ -16,12 +16,21 @@ trait ExtractsRetryOf
 
         try {
             $payload = $event->job->payload();
+
+            // Injected by Queue::createPayloadUsing (survives SerializesModels __serialize)
+            if (array_key_exists('vantage_retry_of', $payload)) {
+                $marker = $payload['vantage_retry_of'];
+                if (is_numeric($marker)) {
+                    return (int) $marker;
+                }
+            }
+
             $cmd = $payload['data']['command'] ?? null;
 
             if (is_object($cmd) && property_exists($cmd, 'queueMonitorRetryOf')) {
                 $retryOf = (int) $cmd->queueMonitorRetryOf;
             } elseif (is_string($cmd)) {
-                $obj = @unserialize($cmd);
+                $obj = @unserialize($cmd, ['allowed_classes' => true]);
                 if (is_object($obj) && property_exists($obj, 'queueMonitorRetryOf')) {
                     $retryOf = (int) $obj->queueMonitorRetryOf;
                 }
@@ -34,6 +43,21 @@ trait ExtractsRetryOf
         VantageLogger::debug('QM retryOf check', ['retryOf' => $retryOf]);
 
         return $retryOf;
+    }
+
+    /**
+     * Same as {@see getRetryOf} but only when the worker is on the first dequeue attempt.
+     *
+     * Laravel keeps the same queue payload (including vantage_retry_of / queueMonitorRetryOf)
+     * for automatic retries of the same job; those should not get a second retried_from_id link.
+     */
+    protected function getRetryOfForFirstQueueAttempt($event): ?int
+    {
+        if (method_exists($event->job, 'attempts') && (int) $event->job->attempts() !== 1) {
+            return null;
+        }
+
+        return $this->getRetryOf($event);
     }
 
     /**

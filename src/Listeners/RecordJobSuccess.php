@@ -132,7 +132,7 @@ class RecordJobSuccess
                 'attempt' => $event->job->attempts(),
                 'status' => $status,
                 'finished_at' => now(),
-                'retried_from_id' => $this->getRetryOf($event),
+                'retried_from_id' => $this->getRetryOfForFirstQueueAttempt($event),
                 'payload' => PayloadExtractor::getPayload($event),
                 'job_tags' => TagExtractor::extract($event),
             ]);

@@ -128,7 +128,7 @@ class RecordJobFailure
                 'exception_message' => Str::limit($event->exception->getMessage(), 2000),
                 'stack' => Str::limit($event->exception->getTraceAsString(), 4000),
                 'finished_at' => now(),
-                'retried_from_id' => $this->getRetryOf($event),
+                'retried_from_id' => $this->getRetryOfForFirstQueueAttempt($event),
                 'payload' => PayloadExtractor::getPayload($event),
                 'job_tags' => TagExtractor::extract($event),
                 // telemetry end metrics

@@ -42,7 +42,7 @@
                 <i data-lucide="chevron-right" class="w-4 h-4" aria-hidden="true"></i>
             </span>
         @endif
-        @if($job->status === 'failed')
+        @if($job->status === 'failed' && $job->isLastRecordedAttemptForJobUuid())
             <form action="{{ route('vantage.jobs.retry', $job->id) }}" method="POST" class="inline">
                 @csrf
                 <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 inline-flex items-center gap-2">
@@ -50,6 +50,12 @@
                     Retry Job
                 </button>
             </form>
+        @elseif($job->status === 'failed')
+            <span class="bg-gray-100 border border-gray-200 text-gray-500 px-4 py-2 rounded-md inline-flex items-center gap-2 text-sm cursor-not-allowed select-none"
+                  title="{{ \Storvia\Vantage\Models\VantageJob::retryOnlyLastAttemptMessage() }} Use &quot;Next attempt&quot; when available.">
+                <i data-lucide="refresh-cw" class="w-4 h-4" aria-hidden="true"></i>
+                Retry Job
+            </span>
         @endif
         <a href="{{ route('vantage.jobs') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 inline-flex items-center gap-2">
             <i data-lucide="arrow-left" class="w-4 h-4" aria-hidden="true"></i>

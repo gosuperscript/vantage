@@ -319,7 +319,7 @@ it('tracks retry chain via retried_from_id', function () {
         'finished_at' => now(),
     ]);
 
-    // Simulate retry job with retry marker
+    // Simulate manual retry: first queue attempt carries the marker
     $retryJob = new class($original->id)
     {
         public $queue = 'default';
@@ -338,7 +338,7 @@ it('tracks retry chain via retried_from_id', function () {
 
         public function attempts()
         {
-            return 2;
+            return 1;
         }
 
         public function uuid()
@@ -370,7 +370,7 @@ it('tracks retry chain via retried_from_id', function () {
     $retryRecord = VantageJob::where('uuid', 'retry-uuid')->first();
 
     expect($retryRecord->retried_from_id)->toBe($original->id)
-        ->and($retryRecord->attempt)->toBe(2);
+        ->and($retryRecord->attempt)->toBe(1);
 
     // Complete retry
     $successEvent = new JobProcessed('test-connection', $retryJob);
@@ -379,6 +379,109 @@ it('tracks retry chain via retried_from_id', function () {
 
     $retryRecord->refresh();
     expect($retryRecord->status)->toBe('processed');
+});
+
+it('sets retried_from_id from vantage_retry_of queue payload when command omits marker', function () {
+    $original = VantageJob::create([
+        'uuid' => 'original-uuid-2',
+        'job_class' => 'App\\Jobs\\TestJob',
+        'status' => 'failed',
+        'finished_at' => now(),
+    ]);
+
+    $retryJob = new class($original->id)
+    {
+        public $queue = 'default';
+
+        public function __construct(private int $originalId) {}
+
+        public function getQueue()
+        {
+            return $this->queue;
+        }
+
+        public function attempts()
+        {
+            return 1;
+        }
+
+        public function uuid()
+        {
+            return 'retry-uuid-payload';
+        }
+
+        public function resolveName()
+        {
+            return 'App\\Jobs\\TestJob';
+        }
+
+        public function payload()
+        {
+            return [
+                'vantage_retry_of' => $this->originalId,
+                'data' => ['command' => serialize(new stdClass)],
+            ];
+        }
+    };
+
+    $startEvent = new JobProcessing('test-connection', $retryJob);
+    (new RecordJobStart)->handle($startEvent);
+
+    $retryRecord = VantageJob::where('uuid', 'retry-uuid-payload')->first();
+
+    expect($retryRecord)->not->toBeNull()
+        ->and($retryRecord->retried_from_id)->toBe($original->id);
+});
+
+it('does not set retried_from_id on Laravel queue attempts after the first', function () {
+    $original = VantageJob::create([
+        'uuid' => 'original-uuid-attempt2',
+        'job_class' => 'App\\Jobs\\TestJob',
+        'status' => 'failed',
+        'finished_at' => now(),
+    ]);
+
+    $retryJob = new class($original->id)
+    {
+        public $queue = 'default';
+
+        public function __construct(private int $originalId) {}
+
+        public function getQueue()
+        {
+            return $this->queue;
+        }
+
+        public function attempts()
+        {
+            return 2;
+        }
+
+        public function uuid()
+        {
+            return 'retry-uuid-attempt-2';
+        }
+
+        public function resolveName()
+        {
+            return 'App\\Jobs\\TestJob';
+        }
+
+        public function payload()
+        {
+            return [
+                'vantage_retry_of' => $this->originalId,
+                'data' => ['command' => serialize(new stdClass)],
+            ];
+        }
+    };
+
+    (new RecordJobStart)->handle(new JobProcessing('test-connection', $retryJob));
+
+    $record = VantageJob::where('uuid', 'retry-uuid-attempt-2')->first();
+
+    expect($record)->not->toBeNull()
+        ->and($record->retried_from_id)->toBeNull();
 });
 
 it('extracts and stores job tags', function () {

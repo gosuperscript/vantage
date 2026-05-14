@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\TagAggregator;
@@ -26,6 +27,29 @@ it('counts processed and released jobs separately on the dashboard', function ()
     $this->get('/vantage')
         ->assertOk()
         ->assertViewHas('stats', fn (array $stats) => $stats['processed'] === 1 && $stats['released'] === 1);
+});
+
+it('shows retry indicators on the dashboard recent jobs table', function () {
+    $failed = VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\FailedThenRetried',
+        'status' => 'failed',
+        'created_at' => now(),
+    ]);
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\FailedThenRetried',
+        'status' => 'processed',
+        'retried_from_id' => $failed->id,
+        'created_at' => now(),
+    ]);
+
+    $this->get('/vantage')
+        ->assertOk()
+        ->assertSee('Retried', false)
+        ->assertSee('Retry of #'.$failed->id, false)
+        ->assertSee(route('vantage.jobs.show', $failed->id), false);
 });
 
 it('displays dashboard with job statistics', function () {
@@ -156,6 +180,73 @@ it('links prev and next attempt for the same job uuid', function () {
         ->assertSee('aria-disabled="true"', false);
 });
 
+it('shows first and last attempt badges for rows that share a queue job uuid', function () {
+    $uuid = 'shared-uuid-badges';
+
+    VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\BadgeAttemptJob',
+        'status' => 'failed',
+        'attempt' => 1,
+        'queue' => 'default',
+    ]);
+
+    VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\BadgeAttemptJob',
+        'status' => 'processing',
+        'attempt' => 2,
+        'queue' => 'default',
+    ]);
+
+    VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\BadgeAttemptJob',
+        'status' => 'processed',
+        'attempt' => 3,
+        'queue' => 'default',
+    ]);
+
+    $this->get('/vantage/jobs')
+        ->assertOk()
+        ->assertSee('First', false)
+        ->assertSee('Last', false);
+
+    $this->get('/vantage')
+        ->assertOk()
+        ->assertSee('First', false)
+        ->assertSee('Last', false);
+});
+
+it('rejects web retry when the failed run is not the last worker attempt for its uuid', function () {
+    $this->withoutMiddleware(VerifyCsrfToken::class);
+
+    $uuid = 'block-retry-shared-uuid';
+
+    $olderFailed = VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\StaleFail',
+        'status' => 'failed',
+        'attempt' => 1,
+        'queue' => 'default',
+    ]);
+
+    VantageJob::create([
+        'uuid' => $uuid,
+        'job_class' => 'App\\Jobs\\StaleFail',
+        'status' => 'processed',
+        'attempt' => 2,
+        'queue' => 'default',
+    ]);
+
+    $this->post(route('vantage.jobs.retry', $olderFailed->id))
+        ->assertSessionHas('error', VantageJob::retryOnlyLastAttemptMessage());
+
+    $this->get("/vantage/jobs/{$olderFailed->id}")
+        ->assertOk()
+        ->assertSee(VantageJob::retryOnlyLastAttemptMessage(), false);
+});
+
 it('displays retry chain in job details', function () {
     $original = VantageJob::create([
         'uuid' => Str::uuid(),
@@ -216,6 +307,61 @@ it('shows released counts on the tags page', function () {
         ->assertViewHas('tagStats', fn (array $tagStats) => isset($tagStats['billing'])
             && ($tagStats['billing']['released'] ?? 0) === 1
             && ($tagStats['billing']['processed'] ?? 0) === 0);
+});
+
+it('shows retry indicators on the all jobs list', function () {
+    $failed = VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\ListRetryJob',
+        'status' => 'failed',
+        'queue' => 'default',
+    ]);
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\ListRetryJob',
+        'status' => 'processed',
+        'queue' => 'default',
+        'retried_from_id' => $failed->id,
+    ]);
+
+    $this->get('/vantage/jobs')
+        ->assertOk()
+        ->assertSee('Retried', false)
+        ->assertSee('Retry of #'.$failed->id, false);
+});
+
+it('shows retry indicators on the failed jobs list', function () {
+    $originalFailed = VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\FailedListRetry',
+        'status' => 'failed',
+        'exception_class' => 'Exception',
+        'exception_message' => 'First failure',
+    ]);
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\FailedListRetry',
+        'status' => 'processed',
+        'retried_from_id' => $originalFailed->id,
+    ]);
+
+    $retryFailed = VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\FailedListRetry',
+        'status' => 'failed',
+        'retried_from_id' => $originalFailed->id,
+        'exception_class' => 'Exception',
+        'exception_message' => 'Retry also failed',
+    ]);
+
+    $this->get('/vantage/failed')
+        ->assertOk()
+        ->assertSee('Retried', false)
+        ->assertSee('Retry of #'.$originalFailed->id, false)
+        ->assertSee('First failure', false)
+        ->assertSee('Retry also failed', false);
 });
 
 it('displays failed jobs page', function () {

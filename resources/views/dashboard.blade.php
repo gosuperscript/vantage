@@ -616,6 +616,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attempt</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
@@ -625,13 +626,22 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($recentJobs as $job)
+                        @php
+                            $retryChildrenForRow = (int) ($retryChildCounts[$job->id] ?? 0);
+                        @endphp
                         <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ $job->id }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" title="{{ $job->job_class }}">
-                                {{ Str::limit(class_basename($job->job_class), 30) }}
+                                <span class="inline-flex items-center gap-2 flex-wrap">
+                                    <span>{{ Str::limit(class_basename($job->job_class), 30) }}</span>
+                                    @include('vantage::partials.retry-of-parent-link', ['job' => $job])
+                                </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $job->queue ?? 'default' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @include('vantage::partials.attempt-position-badges', ['job' => $job, 'attemptBounds' => $attemptBounds])
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($job->job_tags && count($job->job_tags) > 0)
@@ -657,8 +667,11 @@
                                         Processed
                                     </span>
                                 @elseif($job->status === 'failed')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                        Failed
+                                    <span class="inline-flex items-center gap-1.5 flex-wrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                            Failed
+                                        </span>
+                                        @include('vantage::partials.retried-after-badge', ['count' => $retryChildrenForRow])
                                     </span>
                                 @elseif($job->status === 'released')
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -684,7 +697,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                            <td colspan="9" class="px-6 py-4 text-center text-gray-500">
                                 No jobs yet
                             </td>
                         </tr>

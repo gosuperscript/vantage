@@ -205,3 +205,36 @@ it('handles null telemetry fields', function () {
         ->and($job->memory_start_bytes)->toBeNull()
         ->and($job->cpu_user_ms)->toBeNull();
 });
+
+it('reports last recorded attempt for a job uuid', function () {
+    $uuid = 'last-attempt-uuid';
+
+    $a = makeJob([
+        'uuid' => $uuid,
+        'attempt' => 1,
+        'status' => 'failed',
+    ]);
+
+    $b = makeJob([
+        'uuid' => $uuid,
+        'attempt' => 2,
+        'status' => 'processed',
+    ]);
+
+    expect($a->isLastRecordedAttemptForJobUuid())->toBeFalse()
+        ->and($b->isLastRecordedAttemptForJobUuid())->toBeTrue();
+});
+
+it('treats missing uuid as last attempt for retry guard', function () {
+    $job = makeJob([
+        'uuid' => '',
+        'attempt' => 1,
+        'status' => 'failed',
+    ]);
+
+    expect($job->isLastRecordedAttemptForJobUuid())->toBeTrue();
+});
+
+it('exposes a stable retry-only-last-attempt message', function () {
+    expect(VantageJob::retryOnlyLastAttemptMessage())->toContain('last');
+});

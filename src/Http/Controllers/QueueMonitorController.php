@@ -6,10 +6,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\Request;
 use Illuminate\Queue\Jobs\Job;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\JobRestorer;
+use Storvia\Vantage\Support\PendingVantageRetry;
 use Storvia\Vantage\Support\QueueDepthChecker;
 use Storvia\Vantage\Support\TagAggregator;
 use Storvia\Vantage\Support\VantageLogger;
@@ -55,6 +57,9 @@ class QueueMonitorController extends Controller
             ->latest('id')
             ->limit(20)
             ->get();
+
+        $retryChildCounts = $this->retryChildCountsForJobIds($recentJobs->pluck('id')->all());
+        $attemptBounds = $this->attemptBoundsForUuids($recentJobs->pluck('uuid')->filter(fn ($u) => filled($u))->unique()->all());
 
         // Jobs by status (for chart)
         $jobsByStatus = VantageJob::select('status', DB::raw('count(*) as count'))
@@ -205,6 +210,8 @@ class QueueMonitorController extends Controller
         return view('vantage::dashboard', compact(
             'stats',
             'recentJobs',
+            'retryChildCounts',
+            'attemptBounds',
             'jobsByStatus',
             'jobsByHour',
             'topFailingJobs',
@@ -327,6 +334,9 @@ class QueueMonitorController extends Controller
             ->paginate(50)
             ->withQueryString();
 
+        $retryChildCounts = $this->retryChildCountsForJobIds($jobs->pluck('id')->all());
+        $attemptBounds = $this->attemptBoundsForUuids($jobs->pluck('uuid')->filter(fn ($u) => filled($u))->unique()->all());
+
         // Get filter options
         // Only show queues that actually have jobs in vantage_jobs table
         // This ensures filtering by a queue will return results
@@ -345,7 +355,7 @@ class QueueMonitorController extends Controller
         $tagAggregator = new TagAggregator;
         $allTags = $tagAggregator->getTopTags(now()->subDays(30), 50);
 
-        return view('vantage::jobs', compact('jobs', 'queues', 'jobClasses', 'allTags'));
+        return view('vantage::jobs', compact('jobs', 'retryChildCounts', 'attemptBounds', 'queues', 'jobClasses', 'allTags'));
     }
 
     /**
@@ -413,7 +423,10 @@ class QueueMonitorController extends Controller
             ->latest('id')
             ->paginate(50);
 
-        return view('vantage::failed', compact('jobs'));
+        $retryChildCounts = $this->retryChildCountsForJobIds($jobs->pluck('id')->all());
+        $attemptBounds = $this->attemptBoundsForUuids($jobs->pluck('uuid')->filter(fn ($u) => filled($u))->unique()->all());
+
+        return view('vantage::failed', compact('jobs', 'retryChildCounts', 'attemptBounds'));
     }
 
     /**
@@ -425,6 +438,10 @@ class QueueMonitorController extends Controller
 
         if ($run->status !== 'failed') {
             return back()->with('error', 'Only failed jobs can be retried.');
+        }
+
+        if (! $run->isLastRecordedAttemptForJobUuid()) {
+            return back()->with('error', VantageJob::retryOnlyLastAttemptMessage());
         }
 
         $jobClass = $run->job_class;
@@ -448,13 +465,14 @@ class QueueMonitorController extends Controller
                 return back()->with('error', 'Unable to restore job. Payload might be missing or corrupted.');
             }
 
-            // Mark as retry
+            // Mark as retry (payload hook also carries ID for SerializesModels jobs)
             $job->queueMonitorRetryOf = $run->id;
 
-            // Dispatch
-            dispatch($job)
-                ->onQueue($run->queue ?? 'default')
-                ->onConnection($run->connection ?? config('queue.default'));
+            PendingVantageRetry::whileRetrying($run->id, function () use ($job, $run) {
+                dispatch($job)
+                    ->onQueue($run->queue ?? 'default')
+                    ->onConnection($run->connection ?? config('queue.default'));
+            });
 
             return back()->with('success', 'Job queued for retry!');
 
@@ -466,6 +484,63 @@ class QueueMonitorController extends Controller
 
             return back()->with('error', 'Retry failed: '.$e->getMessage());
         }
+    }
+
+    /**
+     * For each parent vantage_jobs.id, how many runs were queued as retries of that parent.
+     *
+     * @param  array<int|string|null>  $vantageJobIds
+     * @return Collection<int|string, int>
+     */
+    protected function retryChildCountsForJobIds(array $vantageJobIds): Collection
+    {
+        $ids = array_values(array_unique(array_map('intval', array_filter($vantageJobIds, fn ($id) => $id !== null && $id !== ''))));
+
+        if ($ids === []) {
+            return collect();
+        }
+
+        return VantageJob::query()
+            ->whereIn('retried_from_id', $ids)
+            ->groupBy('retried_from_id')
+            ->selectRaw('retried_from_id, COUNT(*) as retry_child_count')
+            ->pluck('retry_child_count', 'retried_from_id');
+    }
+
+    /**
+     * For each job UUID, the minimum and maximum queue worker attempt numbers recorded.
+     *
+     * @param  array<int, mixed>  $uuids
+     * @return Collection<string, array{min_attempt: int, max_attempt: int}>
+     */
+    protected function attemptBoundsForUuids(array $uuids): Collection
+    {
+        $uuids = array_values(array_unique(array_filter(
+            $uuids,
+            static fn ($u): bool => is_string($u) && $u !== ''
+        )));
+
+        if ($uuids === []) {
+            return collect();
+        }
+
+        $model = new VantageJob;
+        $table = $model->getTable();
+
+        return DB::connection($model->getConnectionName())
+            ->table($table)
+            ->whereIn('uuid', $uuids)
+            ->groupBy('uuid')
+            ->selectRaw('uuid, MIN(attempt) as min_attempt, MAX(attempt) as max_attempt')
+            ->get()
+            ->mapWithKeys(static function (object $row): array {
+                return [
+                    (string) $row->uuid => [
+                        'min_attempt' => (int) $row->min_attempt,
+                        'max_attempt' => (int) $row->max_attempt,
+                    ],
+                ];
+            });
     }
 
     /**

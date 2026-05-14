@@ -10,7 +10,7 @@ use Storvia\Vantage\Database\Factories\VantageJobFactory;
 /**
  * @property int $id
  * @property string $status
- * @property string $job_uuid
+ * @property string|null $uuid
  * @property string $job_class
  * @property string $queue
  * @property string|null $connection
@@ -91,6 +91,33 @@ class VantageJob extends Model
     public function retries()
     {
         return $this->hasMany(self::class, 'retried_from_id');
+    }
+
+    /**
+     * Whether this run uses the highest recorded queue worker attempt number for its job UUID.
+     */
+    public function isLastRecordedAttemptForJobUuid(): bool
+    {
+        $uuid = $this->uuid;
+        if (! is_string($uuid) || $uuid === '') {
+            return true;
+        }
+
+        $maxAttempt = static::query()->where('uuid', $uuid)->max('attempt');
+
+        if ($maxAttempt === null) {
+            return true;
+        }
+
+        return (int) $this->attempt === (int) $maxAttempt;
+    }
+
+    /**
+     * User-visible message when retry is blocked because a newer attempt exists for the same job UUID.
+     */
+    public static function retryOnlyLastAttemptMessage(): string
+    {
+        return 'Only the last worker attempt for this job can be retried.';
     }
 
     /**

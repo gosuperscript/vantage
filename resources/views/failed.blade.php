@@ -17,6 +17,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queue</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attempt</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exception</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Failed At</th>
@@ -25,13 +26,23 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
             @forelse($jobs as $job)
+                @php
+                    $retryChildrenForRow = (int) ($retryChildCounts[$job->id] ?? 0);
+                @endphp
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ $job->id }}</td>
                     <td class="px-6 py-4 text-sm font-medium text-gray-900" title="{{ $job->job_class }}">
-                        {{ Str::limit(class_basename($job->job_class), 30) }}
+                        <span class="inline-flex items-center gap-2 flex-wrap">
+                            <span>{{ Str::limit(class_basename($job->job_class), 30) }}</span>
+                            @include('vantage::partials.retry-of-parent-link', ['job' => $job])
+                            @include('vantage::partials.retried-after-badge', ['count' => $retryChildrenForRow])
+                        </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ $job->queue ?? 'default' }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        @include('vantage::partials.attempt-position-badges', ['job' => $job, 'attemptBounds' => $attemptBounds])
                     </td>
                     <td class="px-6 py-4 text-sm text-red-600 font-mono text-xs" title="{{ $job->exception_class }}">
                         {{ Str::limit(class_basename($job->exception_class), 25) }}
@@ -47,17 +58,24 @@
                            class="text-indigo-600 hover:text-indigo-900">
                             View
                         </a>
-                        <form action="{{ route('vantage.jobs.retry', $job->id) }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" class="text-green-600 hover:text-green-900">
+                        @if($job->isLastRecordedAttemptForJobUuid())
+                            <form action="{{ route('vantage.jobs.retry', $job->id) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="text-green-600 hover:text-green-900">
+                                    Retry
+                                </button>
+                            </form>
+                        @else
+                            <span class="text-gray-400 cursor-not-allowed text-sm"
+                                  title="{{ \Storvia\Vantage\Models\VantageJob::retryOnlyLastAttemptMessage() }}">
                                 Retry
-                            </button>
-                        </form>
+                            </span>
+                        @endif
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center">
+                    <td colspan="8" class="px-6 py-12 text-center">
                         <div class="text-6xl mb-4 flex justify-center">
                             <i data-lucide="star" class="w-14 h-14 text-amber-500" aria-hidden="true"></i>
                         </div>
