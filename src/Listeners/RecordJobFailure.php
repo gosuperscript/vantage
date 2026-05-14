@@ -32,7 +32,7 @@ class RecordJobFailure
         $uuid = $this->bestUuid($event);
         $jobClass = $this->jobClass($event);
         $queue = $event->job->getQueue();
-        $connection = $event->connectionName ?? null;
+        $connection = $event->connectionName;
 
         // Try to find existing processing record
         $row = null;

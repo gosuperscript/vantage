@@ -21,7 +21,7 @@ class QueueMonitorController extends Controller
      */
     public function index(Request $request)
     {
-        $period = $request->get('period', '30d'); // Changed default to 30 days
+        $period = $request->input('period', '30d'); // Changed default to 30 days
         $since = $this->getSinceDate($period);
 
         // Overall statistics
@@ -251,7 +251,7 @@ class QueueMonitorController extends Controller
         }
 
         // Advanced tag filtering
-        $tagsParam = $request->get('tags');
+        $tagsParam = $request->input('tags');
 
         // Check if tags parameter exists and is not empty
         if (! empty($tagsParam) && trim($tagsParam) !== '') {
@@ -368,7 +368,7 @@ class QueueMonitorController extends Controller
      */
     public function tags(Request $request)
     {
-        $period = $request->get('period', '7d');
+        $period = $request->input('period', '7d');
         $since = $this->getSinceDate($period);
 
         // Use optimized database-native queries for large datasets

@@ -25,21 +25,6 @@ parameters:
 			path: src/Console/Commands/PruneOldJobs.php
 
 		-
-			message: '#^Parameter \#1 \$json of function json_decode expects string, array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Console/Commands/RetryFailedJob.php
-
-		-
-			message: '''
-				#^Call to deprecated method get\(\) of class Illuminate\\Http\\Request\:
-				since Symfony 7\.4, use properties `\-\>attributes`, `query` or `request` directly instead$#
-			'''
-			identifier: method.deprecated
-			count: 3
-			path: src/Http/Controllers/QueueMonitorController.php
-
-		-
 			message: '#^Call to function is_string\(\) with class\-string will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -61,12 +46,6 @@ parameters:
 			message: '#^Call to function method_exists\(\) with Illuminate\\Contracts\\Queue\\Job and ''uuid'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 2
-			path: src/Listeners/RecordJobFailure.php
-
-		-
-			message: '#^Property Illuminate\\Queue\\Events\\JobFailed\:\:\$connectionName \(string\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
 			path: src/Listeners/RecordJobFailure.php
 
 		-

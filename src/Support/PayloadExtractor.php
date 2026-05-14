@@ -125,7 +125,6 @@ class PayloadExtractor
 
             // Get ALL properties (public, protected, private) - NO FILTERING!
             foreach ($reflection->getProperties() as $property) {
-                $property->setAccessible(true);
                 $key = $property->getName();
                 $value = $property->getValue($command);
                 $data[$key] = self::convertValue($value);
