@@ -39,15 +39,18 @@
                     Processed <span class="sort-indicator text-gray-400">--</span>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-column="3">
-                    Failed <span class="sort-indicator text-gray-400">--</span>
+                    Released <span class="sort-indicator text-gray-400">--</span>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-column="4">
-                    Processing <span class="sort-indicator text-gray-400">--</span>
+                    Failed <span class="sort-indicator text-gray-400">--</span>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-column="5">
-                    Success Rate <span class="sort-indicator text-gray-400">--</span>
+                    Processing <span class="sort-indicator text-gray-400">--</span>
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-column="6">
+                    Success Rate <span class="sort-indicator text-gray-400">--</span>
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 sortable" data-column="7">
                     Avg Duration <span class="sort-indicator text-gray-400">--</span>
                 </th>
             </tr>
@@ -67,6 +70,9 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600" data-sort="{{ $stats['processed'] }}">
                         {{ number_format($stats['processed']) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-sky-600" data-sort="{{ $stats['released'] ?? 0 }}">
+                        {{ number_format($stats['released'] ?? 0) }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600" data-sort="{{ $stats['failed'] }}">
                         {{ number_format($stats['failed']) }}
@@ -97,7 +103,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                    <td colspan="8" class="px-6 py-8 text-center text-gray-500">
                         No tagged jobs found in this period
                     </td>
                 </tr>

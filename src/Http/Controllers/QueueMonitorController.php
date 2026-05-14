@@ -24,10 +24,11 @@ class QueueMonitorController extends Controller
         $period = $request->input('period', '30d'); // Changed default to 30 days
         $since = $this->getSinceDate($period);
 
-        // Overall statistics (processed card includes released: rate-limited jobs that re-queued)
+        // Overall statistics
         $stats = [
             'total' => VantageJob::where('created_at', '>', $since)->count(),
-            'processed' => VantageJob::where('created_at', '>', $since)->whereIn('status', ['processed', 'released'])->count(),
+            'processed' => VantageJob::where('created_at', '>', $since)->where('status', 'processed')->count(),
+            'released' => VantageJob::where('created_at', '>', $since)->where('status', 'released')->count(),
             'failed' => VantageJob::where('created_at', '>', $since)->where('status', 'failed')->count(),
             'processing' => VantageJob::where('status', 'processing')
                 ->where('created_at', '>', now()->subHour()) // Only recent processing jobs
@@ -37,10 +38,10 @@ class QueueMonitorController extends Controller
                 ->avg('duration_ms'),
         ];
 
-        // Success rate: non-failures (processed + released) over all terminal outcomes in the period
-        $completedJobs = $stats['processed'] + $stats['failed'];
+        // Success rate: non-failures (processed + released) over terminal outcomes in the period
+        $completedJobs = $stats['processed'] + $stats['released'] + $stats['failed'];
         $stats['success_rate'] = $completedJobs > 0
-            ? round(($stats['processed'] / $completedJobs) * 100, 1)
+            ? round((($stats['processed'] + $stats['released']) / $completedJobs) * 100, 1)
             : 0;
 
         // Recent jobs - exclude large payload and stack columns

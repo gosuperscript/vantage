@@ -123,6 +123,7 @@ class TagAggregator
                 COUNT(*) AS total,
                 SUM(CASE WHEN j.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                 SUM(CASE WHEN j.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                SUM(CASE WHEN j.status = 'released' THEN 1 ELSE 0 END) AS released,
                 SUM(CASE WHEN j.status = 'processing' THEN 1 ELSE 0 END) AS processing
             FROM {$tagsTable} t
             INNER JOIN {$jobsTable} j ON j.id = t.job_id
@@ -170,6 +171,7 @@ class TagAggregator
                         COUNT(*) AS total,
                         SUM(CASE WHEN v.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                         SUM(CASE WHEN v.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                        SUM(CASE WHEN v.status = 'released' THEN 1 ELSE 0 END) AS released,
                         SUM(CASE WHEN v.status = 'processing' THEN 1 ELSE 0 END) AS processing
                     FROM {$table} v
                     JOIN JSON_TABLE(v.job_tags, '\$[*]' COLUMNS(tag VARCHAR(255) PATH '\$')) jt
@@ -205,6 +207,7 @@ class TagAggregator
                     COUNT(*) AS total,
                     SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
                     SUM(CASE WHEN status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                    SUM(CASE WHEN status = 'released' THEN 1 ELSE 0 END) AS released,
                     SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) AS processing
                 FROM {$table},
                 LATERAL jsonb_array_elements_text(job_tags::jsonb) AS tag
@@ -238,6 +241,7 @@ class TagAggregator
                     COUNT(*) AS total,
                     SUM(CASE WHEN v.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                     SUM(CASE WHEN v.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                    SUM(CASE WHEN v.status = 'released' THEN 1 ELSE 0 END) AS released,
                     SUM(CASE WHEN v.status = 'processing' THEN 1 ELSE 0 END) AS processing
                 FROM {$table} v, json_each(v.job_tags) AS je
                 WHERE v.created_at > ? AND v.job_tags IS NOT NULL
@@ -270,6 +274,7 @@ class TagAggregator
                     COUNT(*) AS total,
                     SUM(CASE WHEN v.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                     SUM(CASE WHEN v.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                    SUM(CASE WHEN v.status = 'released' THEN 1 ELSE 0 END) AS released,
                     SUM(CASE WHEN v.status = 'processing' THEN 1 ELSE 0 END) AS processing
                 FROM {$table} v
                 CROSS APPLY OPENJSON(v.job_tags) AS tag
@@ -308,6 +313,7 @@ class TagAggregator
                                 'total' => 0,
                                 'failed' => 0,
                                 'processed' => 0,
+                                'released' => 0,
                                 'processing' => 0,
                             ];
                         }
@@ -339,6 +345,7 @@ class TagAggregator
                 COUNT(*) AS total,
                 SUM(CASE WHEN j.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                 SUM(CASE WHEN j.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                SUM(CASE WHEN j.status = 'released' THEN 1 ELSE 0 END) AS released,
                 SUM(CASE WHEN j.status = 'processing' THEN 1 ELSE 0 END) AS processing,
                 AVG(j.duration_ms) AS avg_duration
             FROM {$tagsTable} t
@@ -385,6 +392,7 @@ class TagAggregator
                         COUNT(*) AS total,
                         SUM(CASE WHEN v.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                         SUM(CASE WHEN v.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                        SUM(CASE WHEN v.status = 'released' THEN 1 ELSE 0 END) AS released,
                         SUM(CASE WHEN v.status = 'processing' THEN 1 ELSE 0 END) AS processing,
                         AVG(v.duration_ms) AS avg_duration
                     FROM {$table} v
@@ -419,6 +427,7 @@ class TagAggregator
                     COUNT(*) AS total,
                     SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
                     SUM(CASE WHEN status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                    SUM(CASE WHEN status = 'released' THEN 1 ELSE 0 END) AS released,
                     SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END) AS processing,
                     AVG(duration_ms) AS avg_duration
                 FROM {$table},
@@ -452,6 +461,7 @@ class TagAggregator
                     COUNT(*) AS total,
                     SUM(CASE WHEN v.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                     SUM(CASE WHEN v.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                    SUM(CASE WHEN v.status = 'released' THEN 1 ELSE 0 END) AS released,
                     SUM(CASE WHEN v.status = 'processing' THEN 1 ELSE 0 END) AS processing,
                     AVG(v.duration_ms) AS avg_duration
                 FROM {$table} v, json_each(v.job_tags) AS je
@@ -484,6 +494,7 @@ class TagAggregator
                     COUNT(*) AS total,
                     SUM(CASE WHEN v.status = 'failed' THEN 1 ELSE 0 END) AS failed,
                     SUM(CASE WHEN v.status = 'processed' THEN 1 ELSE 0 END) AS processed,
+                    SUM(CASE WHEN v.status = 'released' THEN 1 ELSE 0 END) AS released,
                     SUM(CASE WHEN v.status = 'processing' THEN 1 ELSE 0 END) AS processing,
                     AVG(v.duration_ms) AS avg_duration
                 FROM {$table} v
@@ -520,6 +531,7 @@ class TagAggregator
                             $tagStats[$tag] = [
                                 'total' => 0,
                                 'processed' => 0,
+                                'released' => 0,
                                 'failed' => 0,
                                 'processing' => 0,
                                 'duration_sum' => 0,
@@ -547,7 +559,7 @@ class TagAggregator
                 : 0;
 
             $stats['success_rate'] = $stats['total'] > 0
-                ? round(($stats['processed'] / $stats['total']) * 100, 1)
+                ? round((($stats['processed'] + $stats['released']) / $stats['total']) * 100, 1)
                 : 0;
 
             unset($stats['duration_sum'], $stats['duration_count']);
@@ -569,6 +581,7 @@ class TagAggregator
                 'total' => (int) $row->total,
                 'failed' => (int) $row->failed,
                 'processed' => (int) $row->processed,
+                'released' => (int) ($row->released ?? 0),
                 'processing' => (int) $row->processing,
             ];
         });
@@ -584,15 +597,17 @@ class TagAggregator
         foreach ($rows as $row) {
             $total = (int) $row->total;
             $processed = (int) $row->processed;
+            $released = (int) ($row->released ?? 0);
             $avgDuration = $row->avg_duration !== null ? round((float) $row->avg_duration, 2) : 0;
 
             $result[$row->tag] = [
                 'total' => $total,
                 'processed' => $processed,
+                'released' => $released,
                 'failed' => (int) $row->failed,
                 'processing' => (int) $row->processing,
                 'avg_duration' => $avgDuration,
-                'success_rate' => $total > 0 ? round(($processed / $total) * 100, 1) : 0,
+                'success_rate' => $total > 0 ? round((($processed + $released) / $total) * 100, 1) : 0,
             ];
         }
 

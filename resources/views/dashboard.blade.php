@@ -28,7 +28,7 @@
 </div>
 
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
     <!-- Total Jobs -->
     <div class="bg-gradient-to-br from-blue-50 to-blue-100 overflow-hidden shadow-lg rounded-xl border border-blue-200 hover:shadow-xl transition-shadow">
         <div class="p-5">
@@ -57,6 +57,24 @@
                 </div>
                 <div class="text-4xl opacity-80">
                     <i data-lucide="check-circle" class="w-10 h-10 text-green-500" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Released (re-queued, e.g. rate limits) -->
+    <div class="bg-gradient-to-br from-sky-50 to-sky-100 overflow-hidden shadow-lg rounded-xl border border-sky-200 hover:shadow-xl transition-shadow">
+        <div class="p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-sky-600 uppercase tracking-wide">Released</p>
+                    <p class="text-3xl font-bold text-sky-900 mt-2">{{ number_format($stats['released']) }}</p>
+                    @if($stats['total'] > 0)
+                        <p class="text-xs text-sky-600 mt-1">{{ round(($stats['released'] / $stats['total']) * 100, 1) }}% of total</p>
+                    @endif
+                </div>
+                <div class="text-4xl opacity-80">
+                    <i data-lucide="rotate-ccw" class="w-10 h-10 text-sky-500" aria-hidden="true"></i>
                 </div>
             </div>
         </div>
@@ -420,6 +438,12 @@
                                     <span class="text-green-600 inline-flex items-center gap-1">
                                         <i data-lucide="check-circle" class="w-4 h-4" aria-hidden="true"></i>
                                         {{ $tagData['processed'] }}
+                                    </span>
+                                @endif
+                                @if(($tagData['released'] ?? 0) > 0)
+                                    <span class="text-sky-600 inline-flex items-center gap-1">
+                                        <i data-lucide="rotate-ccw" class="w-4 h-4" aria-hidden="true"></i>
+                                        {{ $tagData['released'] }}
                                     </span>
                                 @endif
                                 @if($tagData['failed'] > 0)

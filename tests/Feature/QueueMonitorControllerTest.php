@@ -2,12 +2,13 @@
 
 use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
+use Storvia\Vantage\Support\TagAggregator;
 
 beforeEach(function () {
     VantageJob::query()->delete();
 });
 
-it('counts released jobs in the dashboard processed stat', function () {
+it('counts processed and released jobs separately on the dashboard', function () {
     VantageJob::create([
         'uuid' => Str::uuid(),
         'job_class' => 'App\\Jobs\\ProcessedJob',
@@ -24,7 +25,7 @@ it('counts released jobs in the dashboard processed stat', function () {
 
     $this->get('/vantage')
         ->assertOk()
-        ->assertViewHas('stats', fn (array $stats) => $stats['processed'] === 2);
+        ->assertViewHas('stats', fn (array $stats) => $stats['processed'] === 1 && $stats['released'] === 1);
 });
 
 it('displays dashboard with job statistics', function () {
@@ -47,6 +48,7 @@ it('displays dashboard with job statistics', function () {
 
     $response->assertStatus(200)
         ->assertSee('Dashboard')
+        ->assertSee('Released', false)
         ->assertSee('TestJob', false);
 });
 
@@ -194,6 +196,26 @@ it('filters jobs by tags', function () {
     $response->assertStatus(200)
         ->assertSee('TestJob', false)
         ->assertDontSee('OtherJob', false);
+});
+
+it('shows released counts on the tags page', function () {
+    $job = VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\TaggedReleased',
+        'status' => 'released',
+        'job_tags' => ['billing'],
+        'created_at' => now()->subDay(),
+    ]);
+
+    (new TagAggregator)->insertJobTags($job->id, ['billing'], $job->created_at);
+
+    $this->get('/vantage/tags')
+        ->assertOk()
+        ->assertSee('Released', false)
+        ->assertSee('billing', false)
+        ->assertViewHas('tagStats', fn (array $tagStats) => isset($tagStats['billing'])
+            && ($tagStats['billing']['released'] ?? 0) === 1
+            && ($tagStats['billing']['processed'] ?? 0) === 0);
 });
 
 it('displays failed jobs page', function () {
