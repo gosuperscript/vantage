@@ -23,7 +23,7 @@ class QueueMonitorController extends Controller
      */
     public function index(Request $request)
     {
-        $period = $request->input('period', '30d'); // Changed default to 30 days
+        $period = $request->input('period', '1h'); // Changed default to 30 days
         $since = $this->getSinceDate($period);
 
         // Overall statistics
@@ -281,7 +281,7 @@ class QueueMonitorController extends Controller
                             if ($driver === 'sqlite') {
                                 // SQLite: json_each().value returns the actual string, not JSON-encoded
                                 $q->orWhereRaw('EXISTS (
-                                    SELECT 1 FROM json_each(vantage_jobs.job_tags) 
+                                    SELECT 1 FROM json_each(vantage_jobs.job_tags)
                                     WHERE json_each.value = ?
                                 )', [$tag]);
                             } else {
@@ -297,7 +297,7 @@ class QueueMonitorController extends Controller
                             // SQLite: json_each().value returns the actual string, not JSON-encoded
                             // So we compare directly to the tag value
                             $query->whereRaw('EXISTS (
-                                SELECT 1 FROM json_each(vantage_jobs.job_tags) 
+                                SELECT 1 FROM json_each(vantage_jobs.job_tags)
                                 WHERE json_each.value = ?
                             )', [$tag]);
                         } else {
@@ -317,7 +317,7 @@ class QueueMonitorController extends Controller
             if ($driver === 'sqlite') {
                 // SQLite: json_each().value returns the actual string, not JSON-encoded
                 $query->whereRaw('EXISTS (
-                    SELECT 1 FROM json_each(vantage_jobs.job_tags) 
+                    SELECT 1 FROM json_each(vantage_jobs.job_tags)
                     WHERE json_each.value = ?
                 )', [$tag]);
             } else {
