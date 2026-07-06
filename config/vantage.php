@@ -159,6 +159,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Jobs List Filter Options Cache
+    |--------------------------------------------------------------------------
+    |
+    | The jobs list page builds its filter dropdowns (queues, job classes, tags)
+    | from queries that scan the whole table and rarely change. They are cached
+    | on the application's default cache store for this many seconds. Set to 0
+    | to disable caching and recompute them on every request.
+    |
+    */
+    'filter_options_cache_ttl' => (int) env('VANTAGE_FILTER_OPTIONS_CACHE_TTL', 300),
+
+    /*
+    |--------------------------------------------------------------------------
     | Authentication
     |--------------------------------------------------------------------------
     |
