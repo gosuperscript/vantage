@@ -340,9 +340,8 @@ class QueueMonitorController extends Controller
         $retryChildCounts = $this->retryChildCountsForJobIds($jobs->pluck('id')->all());
         $attemptBounds = $this->attemptBoundsForUuids($jobs->pluck('uuid')->filter(fn ($u) => filled($u))->unique()->all());
 
-        // Get filter options. These scan the whole table (or aggregate JSON over 30 days)
-        // and rarely change, so they are cached to avoid recomputing on every page load.
-        // A ttl of 0 disables caching and runs each query live.
+        // Filter options. Both queries read the whole table (the tag aggregate covers 30 days),
+        // so they are cached; see rememberFilterOptions().
         $queues = $this->rememberFilterOptions('queues', function () {
             // Only show queues that actually have jobs in vantage_jobs table
             // This ensures filtering by a queue will return results
@@ -355,17 +354,11 @@ class QueueMonitorController extends Controller
                 ->values();
         });
 
-        $jobClasses = $this->rememberFilterOptions('job_classes', function () {
-            return VantageJob::distinct()->pluck('job_class')->map(fn ($c) => class_basename($c))->filter();
-        });
-
-        // Get all available tags with counts - use optimized queries
-        // Only look at last 30 days to limit data size
         $allTags = $this->rememberFilterOptions('tags', function () {
             return (new TagAggregator)->getTopTags(now()->subDays(30), 50);
         });
 
-        return view('vantage::jobs', compact('jobs', 'retryChildCounts', 'attemptBounds', 'queues', 'jobClasses', 'allTags'));
+        return view('vantage::jobs', compact('jobs', 'retryChildCounts', 'attemptBounds', 'queues', 'allTags'));
     }
 
     /**
@@ -497,15 +490,9 @@ class QueueMonitorController extends Controller
     }
 
     /**
-     * For each parent vantage_jobs.id, how many runs were queued as retries of that parent.
-     *
-     * @param  array<int|string|null>  $vantageJobIds
-     * @return Collection<int|string, int>
-     */
-    /**
-     * Cache a jobs-page filter option set. These queries scan the whole table and rarely
-     * change, so we cache them on the app's default store. A ttl of 0 (or less) bypasses
-     * the cache and runs the closure live, preserving the previous always-fresh behavior.
+     * Cache a jobs-page filter option set on the default cache store for
+     * config('vantage.filter_options_cache_ttl') seconds. A ttl of 0 or less runs the
+     * callback on every request instead.
      *
      * @template TValue
      *
@@ -523,6 +510,12 @@ class QueueMonitorController extends Controller
         return Cache::remember('vantage:jobs:filter:'.$key, $ttl, $callback);
     }
 
+    /**
+     * For each parent vantage_jobs.id, how many runs were queued as retries of that parent.
+     *
+     * @param  array<int|string|null>  $vantageJobIds
+     * @return Collection<int|string, int>
+     */
     protected function retryChildCountsForJobIds(array $vantageJobIds): Collection
     {
         $ids = array_values(array_unique(array_map('intval', array_filter($vantageJobIds, fn ($id) => $id !== null && $id !== ''))));

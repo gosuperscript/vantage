@@ -434,11 +434,8 @@ it('caches jobs filter options across requests', function () {
     $response->assertOk()
         ->assertSee('OriginalJob', false);
 
-    // The filter dropdown options come from cache, so the new ones are absent there.
-    $queues = $response->viewData('queues');
-    $jobClasses = $response->viewData('jobClasses');
-    expect($queues->all())->toBe(['alpha']);
-    expect($jobClasses->values()->all())->toBe(['OriginalJob']);
+    // The queue dropdown options come from cache, so the new queue is absent there.
+    expect($response->viewData('queues')->all())->toBe(['alpha']);
 });
 
 it('bypasses the filter options cache when ttl is zero', function () {
@@ -463,8 +460,5 @@ it('bypasses the filter options cache when ttl is zero', function () {
 
     $response = $this->get('/vantage/jobs')->assertOk();
 
-    $queues = $response->viewData('queues');
-    $jobClasses = $response->viewData('jobClasses');
-    expect($queues->all())->toBe(['alpha', 'bravo']);
-    expect($jobClasses->values()->all())->toContain('FirstJob', 'SecondJob');
+    expect($response->viewData('queues')->all())->toBe(['alpha', 'bravo']);
 });
