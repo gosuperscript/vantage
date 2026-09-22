@@ -32,6 +32,24 @@ Retry and replay paths (web UI, `php artisan vantage:retry`, the optional JSON A
 
 Retry is only offered for the **last recorded** row for a given UUID, so you cannot accidentally replay an older failed attempt when a newer attempt already exists. The web UI, API, Artisan command, and facade return a clear message in that case and point you at **Next attempt** when another row is available.
 
+## Why Vantage?
+
+Vantage records every queue job your application runs and keeps that record in your own database, so you can still answer questions about a job long after it left the queue.
+
+**Works with every queue driver.** Database, Redis, SQS, Beanstalkd, or anything else. Vantage listens to Laravel's queue events rather than to a specific backend, so you can mix drivers or switch between them and tracking keeps working.
+
+**Complete execution history.** Every run stores status, queue, connection, duration, memory and CPU usage, exception class, message and stack trace, payload, tags, and the full retry chain — kept for as long as you choose.
+
+**Built for debugging, not just watching.** Answer "what happened to that job?" days or weeks later. Follow a single failure through every retry attempt. See which job classes fail most often and which exceptions are behind them.
+
+**Real performance numbers.** Per-job memory and CPU telemetry from production, so slow and memory-hungry jobs are something you measure instead of guess.
+
+**Search and filter everything.** By status, queue, job class, tag or date range — from the dashboard, or from the JSON API for your own tooling.
+
+**Retry from anywhere.** The dashboard, the CLI (`vantage:retry`), or your own code through the `Vantage` facade.
+
+**Stays out of the way.** Give Vantage its own database connection, turn off payload storage, sample telemetry, exclude noisy jobs, and prune old history on a schedule — see [Multi-Database Support](#multi-database-support).
+
 ## Installation
 
 ```bash
@@ -49,8 +67,8 @@ The package will automatically register itself using
 
 ### Requirements
 
-- Laravel 10.x, 11.x, 12.x, or 13.x
-- PHP 8.2, 8.3, or 8.4
+- Laravel 11.x, 12.x, or 13.x
+- PHP 8.4 or 8.5
 - One of the following databases:
   - MySQL 5.7+ / MariaDB 10.3+
   - PostgreSQL 9.6+
@@ -280,9 +298,20 @@ VANTAGE_DATABASE_CONNECTION=mysql
 
 This ensures the `vantage_jobs` table is created and accessed from the correct database connection. The package automatically detects your database driver (MySQL, PostgreSQL, SQLite) and uses the appropriate SQL syntax for queries.
 
+You can also point Vantage at a database of its own, so job history is kept separate from the data your application is working with. Define the connection in `config/database.php` like any other — it can live on the same server or a different one.
+
+**Other settings for high-volume queues:**
+
+| Setting | Effect |
+| --- | --- |
+| `VANTAGE_STORE_PAYLOAD=false` | Stop storing job payloads — by far the largest column |
+| `VANTAGE_TELEMETRY_SAMPLE_RATE=0.1` | Collect memory/CPU telemetry for 10% of jobs |
+| `VANTAGE_RETENTION_DAYS=7` | Keep less history, combined with a scheduled `vantage:prune` |
+| `exclude_jobs` / `ShouldNotBeTracked` | Skip noisy, high-frequency jobs entirely |
+
 ### Authentication
 
-Vantage protects the dashboard with Laravel's Gate system (similar to Horizon) via the `viewVantage` gate.
+Vantage protects the dashboard with Laravel's Gate system via the `viewVantage` gate.
 
 - **Default behaviour:** Any authenticated user can access the dashboard.
 - **Gate input:** The gate receives the authenticated user instance or `null` if no one is logged in.
@@ -475,7 +504,8 @@ protected function schedule(Schedule $schedule)
 # Master switch - Enable/disable entire package (default: true)
 VANTAGE_ENABLED=true
 
-# Database connection for vantage_jobs table (optional)
+# Store job history on a separate connection so monitoring writes
+# never touch your application database (optional)
 VANTAGE_DATABASE_CONNECTION=mysql
 
 # Authentication (default: true)

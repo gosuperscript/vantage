@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Queue\Jobs\Job;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Storvia\Vantage\Models\VantageJob;
@@ -330,32 +331,34 @@ class QueueMonitorController extends Controller
         }
 
         // Get jobs
+        // simplePaginate avoids a COUNT(*) over the full filtered set on every load,
+        // which is the dominant cost on large tables. Trade-off: no total/numbered pages.
         $jobs = $query->latest('id')
-            ->paginate(50)
+            ->simplePaginate(50)
             ->withQueryString();
 
         $retryChildCounts = $this->retryChildCountsForJobIds($jobs->pluck('id')->all());
         $attemptBounds = $this->attemptBoundsForUuids($jobs->pluck('uuid')->filter(fn ($u) => filled($u))->unique()->all());
 
-        // Get filter options
-        // Only show queues that actually have jobs in vantage_jobs table
-        // This ensures filtering by a queue will return results
-        $queues = VantageJob::distinct()
-            ->whereNotNull('queue')
-            ->where('queue', '!=', '')
-            ->pluck('queue')
-            ->filter()
-            ->sort()
-            ->values();
+        // Filter options. Both queries read the whole table (the tag aggregate covers 30 days),
+        // so they are cached; see rememberFilterOptions().
+        $queues = $this->rememberFilterOptions('queues', function () {
+            // Only show queues that actually have jobs in vantage_jobs table
+            // This ensures filtering by a queue will return results
+            return VantageJob::distinct()
+                ->whereNotNull('queue')
+                ->where('queue', '!=', '')
+                ->pluck('queue')
+                ->filter()
+                ->sort()
+                ->values();
+        });
 
-        $jobClasses = VantageJob::distinct()->pluck('job_class')->map(fn ($c) => class_basename($c))->filter();
+        $allTags = $this->rememberFilterOptions('tags', function () {
+            return (new TagAggregator)->getTopTags(now()->subDays(30), 50);
+        });
 
-        // Get all available tags with counts - use optimized queries
-        // Only look at last 30 days to limit data size
-        $tagAggregator = new TagAggregator;
-        $allTags = $tagAggregator->getTopTags(now()->subDays(30), 50);
-
-        return view('vantage::jobs', compact('jobs', 'retryChildCounts', 'attemptBounds', 'queues', 'jobClasses', 'allTags'));
+        return view('vantage::jobs', compact('jobs', 'retryChildCounts', 'attemptBounds', 'queues', 'allTags'));
     }
 
     /**
@@ -484,6 +487,27 @@ class QueueMonitorController extends Controller
 
             return back()->with('error', 'Retry failed: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Cache a jobs-page filter option set on the default cache store for
+     * config('vantage.filter_options_cache_ttl') seconds. A ttl of 0 or less runs the
+     * callback on every request instead.
+     *
+     * @template TValue
+     *
+     * @param  callable(): TValue  $callback
+     * @return TValue
+     */
+    protected function rememberFilterOptions(string $key, callable $callback)
+    {
+        $ttl = (int) config('vantage.filter_options_cache_ttl', 300);
+
+        if ($ttl <= 0) {
+            return $callback();
+        }
+
+        return Cache::remember('vantage:jobs:filter:'.$key, $ttl, $callback);
     }
 
     /**

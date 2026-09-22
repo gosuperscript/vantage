@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Storvia\Vantage\Models\VantageJob;
 use Storvia\Vantage\Support\TagAggregator;
@@ -10,18 +11,20 @@ beforeEach(function () {
 });
 
 it('counts processed and released jobs separately on the dashboard', function () {
+    // Seed within the dashboard's default period window (1h) so the counts are exercised
+    // regardless of that default.
     VantageJob::create([
         'uuid' => Str::uuid(),
         'job_class' => 'App\\Jobs\\ProcessedJob',
         'status' => 'processed',
-        'created_at' => now()->subDay(),
+        'created_at' => now()->subMinutes(30),
     ]);
 
     VantageJob::create([
         'uuid' => Str::uuid(),
         'job_class' => 'App\\Jobs\\ReleasedJob',
         'status' => 'released',
-        'created_at' => now()->subDay(),
+        'created_at' => now()->subMinutes(30),
     ]);
 
     $this->get('/vantage')
@@ -378,4 +381,84 @@ it('displays failed jobs page', function () {
     $response->assertStatus(200)
         ->assertSee('Failed', false)
         ->assertSee('Test error', false);
+});
+
+it('paginates the jobs list without a total count query', function () {
+    foreach (range(1, 60) as $i) {
+        VantageJob::create([
+            'uuid' => Str::uuid(),
+            'job_class' => 'App\\Jobs\\BulkJob',
+            'status' => 'processed',
+            'queue' => 'default',
+        ]);
+    }
+
+    $response = $this->get('/vantage/jobs');
+
+    $response->assertOk()
+        // simplePaginate exposes a "Next" link when more pages exist
+        ->assertSee('rel="next"', false)
+        // it must NOT attempt to render a total count (would throw on simple paginator)
+        ->assertDontSee('total jobs', false);
+
+    // second page is reachable
+    $this->get('/vantage/jobs?page=2')->assertOk();
+});
+
+it('caches jobs filter options across requests', function () {
+    config()->set('vantage.filter_options_cache_ttl', 300);
+    Cache::flush();
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\OriginalJob',
+        'status' => 'processed',
+        'queue' => 'alpha',
+    ]);
+
+    // First request populates the cache
+    $this->get('/vantage/jobs')
+        ->assertOk()
+        ->assertSee('OriginalJob', false)
+        ->assertSee('alpha', false);
+
+    // A new class/queue inserted after caching must NOT appear until the cache expires
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\LaterJob',
+        'status' => 'processed',
+        'queue' => 'bravo',
+    ]);
+
+    $response = $this->get('/vantage/jobs');
+    $response->assertOk()
+        ->assertSee('OriginalJob', false);
+
+    // The queue dropdown options come from cache, so the new queue is absent there.
+    expect($response->viewData('queues')->all())->toBe(['alpha']);
+});
+
+it('bypasses the filter options cache when ttl is zero', function () {
+    config()->set('vantage.filter_options_cache_ttl', 0);
+    Cache::flush();
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\FirstJob',
+        'status' => 'processed',
+        'queue' => 'alpha',
+    ]);
+
+    $this->get('/vantage/jobs')->assertOk();
+
+    VantageJob::create([
+        'uuid' => Str::uuid(),
+        'job_class' => 'App\\Jobs\\SecondJob',
+        'status' => 'processed',
+        'queue' => 'bravo',
+    ]);
+
+    $response = $this->get('/vantage/jobs')->assertOk();
+
+    expect($response->viewData('queues')->all())->toBe(['alpha', 'bravo']);
 });
